@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="bin_picking" pkg="bin_picking" type="planeDetection" />
+    <node pkg="rosbag" type="play" name="player" output="screen" args="/home/joana/catkin_ws/src/Bin-picking/bagfiles/kinectj6esfera_plano.bag -l"/>
+    <!-- start rviz -->
+    <node pkg="rviz" type="rviz" name="my_rviz"/> 
+    <include file="$(find openni_launch)/launch/openni.launch">
+        <!-- disable load_driver -->
+        <arg name="load_driver" value="false" />
+        <arg name="depth_registration" value="true" />
+        <!-- calibration
+        <arg name="rgb_camera_info_url" value="package://teleopvr_calibration/kinect_camera/rgb.yaml" />
+        <arg name="depth_camera_info_url" value="package://teleopvr_calibration/kinect_camera/depth.yaml" /> -->
+    </include>
+</launch>
