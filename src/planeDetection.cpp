@@ -1,27 +1,6 @@
-#include <ros/ros.h>
-// PCL specific includes
-#include <sensor_msgs/PointCloud2.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
 
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/filters/passthrough.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/filters/radius_outlier_removal.h>
-
-//for the typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud
-#include <pcl_ros/point_cloud.h>
-#include <pcl/point_types.h>
-
-
-
-// #include <pcl/registration/ia_ransac.h>
-// #include <pcl/registration/icp.h>
-// #include <pcl/registration/sample_consensus_prerejective.h>
-
-#include <pcl/segmentation/sac_segmentation.h>
-
+#include "../include/bin_picking/header_pcl.h"
+#include "../include/bin_picking/pcl_fun.h"
 
 ros::Publisher pub;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
@@ -36,15 +15,16 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
   // // Convert to PCL data type
   // pcl_conversions::toPCL(*cloud_msg, *cloud);
 
-  //Remove the points thar are far away from the sensor since thy are points from the ground
-  pcl::PassThrough<pcl::PointXYZRGB> pt;
-  pt.setInputCloud (cloud_input);
-  pt.setFilterFieldName ("z");
-  pt.setFilterLimits (0, 0.9);
-  // pcl::PCLPointCloud2::Ptr cloud_pt_kinect_ptr (new pcl::PCLPointCloud2);
-  // pcl::PointCloud<pcl::PointXYZ> cloud_pt_kinect_ptr;
+  // //Remove the points thar are far away from the sensor since thy are points from the ground
+  // pcl::PassThrough<pcl::PointXYZRGB> pt;
+  // pt.setInputCloud (cloud_input);
+  // pt.setFilterFieldName ("z");
+  // pt.setFilterLimits (0, 0.9);
+  // // pcl::PCLPointCloud2::Ptr cloud_pt_kinect_ptr (new pcl::PCLPointCloud2);
+  // // pcl::PointCloud<pcl::PointXYZ> cloud_pt_kinect_ptr;
   PointCloud::Ptr cloud_pt_ptr (new PointCloud);
-  pt.filter (*cloud_pt_ptr);
+  // pt.filter (*cloud_pt_ptr);
+  passthrough(cloud_input, cloud_pt_ptr);
 
   // pt.setInputCloud (cloud_pt_kinect_ptr1);
   // pt.setFilterFieldName ("y");
