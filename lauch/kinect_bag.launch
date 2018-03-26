@@ -1,7 +1,10 @@
 <?xml version="1.0"?>
 <launch>
     <node name="bin_picking" pkg="bin_picking" type="planeDetection" />
-    <node pkg="rosbag" type="play" name="player" output="screen" args="/home/joana/catkin_ws/src/Bin-picking/bagfiles/kinectj6esfera_plano.bag -l"/>
+    <arg name="path" default="/home/joana/catkin_ws/src/Bin-picking/bagfiles/" />
+    <arg name="bag" default="kinectj6" />
+    <!-- <node pkg="rosbag" type="play" name="player" output="screen" args="/home/joana/catkin_ws/src/Bin-picking/bagfiles/kinectj6.bag -l"/> -->
+    <node pkg="rosbag" type="play" name="player" output="screen" args="$(arg path)$(arg bag).bag -l" />
     <!-- start rviz -->
     <node pkg="rviz" type="rviz" name="my_rviz"/> 
     <include file="$(find openni_launch)/launch/openni.launch">

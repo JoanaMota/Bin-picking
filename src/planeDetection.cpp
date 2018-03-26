@@ -26,19 +26,19 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
   pt.setInputCloud (cloudPtr);
   pt.setFilterFieldName ("z");
-  pt.setFilterLimits (0, 0.7);
+  pt.setFilterLimits (0, 0.65);
   pcl::PCLPointCloud2::Ptr cloud_pt_kinect_ptr1 (new pcl::PCLPointCloud2);
   pt.filter (*cloud_pt_kinect_ptr1);
 
-  pt.setInputCloud (cloud_pt_kinect_ptr1);
-  pt.setFilterFieldName ("y");
-  pt.setFilterLimits (-0.50, 0.10);
-  pcl::PCLPointCloud2::Ptr cloud_pt_kinect_ptr2 (new pcl::PCLPointCloud2);
-  pt.filter (*cloud_pt_kinect_ptr2);
+  // pt.setInputCloud (cloud_pt_kinect_ptr1);
+  // pt.setFilterFieldName ("y");
+  // pt.setFilterLimits (-0.50, 0.10);
+  // pcl::PCLPointCloud2::Ptr cloud_pt_kinect_ptr2 (new pcl::PCLPointCloud2);
+  // pt.filter (*cloud_pt_kinect_ptr2);
 
   // Perform the actual filtering
   pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
-  sor.setInputCloud (cloud_pt_kinect_ptr2);
+  sor.setInputCloud (cloud_pt_kinect_ptr1);
   sor.setLeafSize (0.005f, 0.005f, 0.005f);
   sor.filter (cloud_filtered);
 
