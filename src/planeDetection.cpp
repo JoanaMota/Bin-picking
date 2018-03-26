@@ -7,28 +7,44 @@
 
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/passthrough.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/radius_outlier_removal.h>
+
+//for the typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
+
+
+
+// #include <pcl/registration/ia_ransac.h>
+// #include <pcl/registration/icp.h>
+// #include <pcl/registration/sample_consensus_prerejective.h>
+
+#include <pcl/segmentation/sac_segmentation.h>
 
 
 ros::Publisher pub;
+typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 
-void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
+void cloud_cb (const PointCloud::ConstPtr& cloud_input)
 {
-  // Container for original & filtered data
-  pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
-  pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-  pcl::PCLPointCloud2 cloud_filtered;
+  // // Container for original & filtered data
+  // pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
+  // pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
+  // pcl::PCLPointCloud2 cloud_filtered;
 
-  // Convert to PCL data type
-  pcl_conversions::toPCL(*cloud_msg, *cloud);
+  // // Convert to PCL data type
+  // pcl_conversions::toPCL(*cloud_msg, *cloud);
 
-  //Restringir área de trabalho 
-  pcl::PassThrough<pcl::PCLPointCloud2> pt;
-
-  pt.setInputCloud (cloudPtr);
+  //Remove the points thar are far away from the sensor since thy are points from the ground
+  pcl::PassThrough<pcl::PointXYZRGB> pt;
+  pt.setInputCloud (cloud_input);
   pt.setFilterFieldName ("z");
-  pt.setFilterLimits (0, 0.65);
-  pcl::PCLPointCloud2::Ptr cloud_pt_kinect_ptr1 (new pcl::PCLPointCloud2);
-  pt.filter (*cloud_pt_kinect_ptr1);
+  pt.setFilterLimits (0, 0.9);
+  // pcl::PCLPointCloud2::Ptr cloud_pt_kinect_ptr (new pcl::PCLPointCloud2);
+  // pcl::PointCloud<pcl::PointXYZ> cloud_pt_kinect_ptr;
+  PointCloud::Ptr cloud_pt_ptr (new PointCloud);
+  pt.filter (*cloud_pt_ptr);
 
   // pt.setInputCloud (cloud_pt_kinect_ptr1);
   // pt.setFilterFieldName ("y");
@@ -37,17 +53,52 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   // pt.filter (*cloud_pt_kinect_ptr2);
 
   // Perform the actual filtering
-  pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
-  sor.setInputCloud (cloud_pt_kinect_ptr1);
-  sor.setLeafSize (0.005f, 0.005f, 0.005f);
-  sor.filter (cloud_filtered);
+  pcl::VoxelGrid<pcl::PointXYZRGB> vg;
+  vg.setInputCloud (cloud_pt_ptr);
+  vg.setLeafSize (0.005f, 0.005f, 0.005f);
+  PointCloud::Ptr cloud_vg_ptr (new PointCloud);
+  // pcl::PCLPointCloud2::Ptr cloud_vg_kinect_ptr (new pcl::PCLPointCloud2);  
+  vg.filter (*cloud_vg_ptr);
 
-  // Convert to ROS data type
-  sensor_msgs::PointCloud2 output;
-  pcl_conversions::moveFromPCL(cloud_filtered, output);
+  // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
+  // pcl::fromPCLPointCloud2 (*cloud_vg_kinect_ptr, *cloud_ptr);
+
+  // Identify the table
+  pcl::SACSegmentation<pcl::PointXYZRGB> sacs;
+  sacs.setOptimizeCoefficients (true);
+  sacs.setModelType (pcl::SACMODEL_PLANE);
+  sacs.setMethodType (pcl::SAC_RANSAC);
+  sacs.setMaxIterations (1000);
+  sacs.setDistanceThreshold (0.02);
+  sacs.setInputCloud (cloud_vg_ptr);
+  pcl::PointIndices::Ptr sacs_inliers (new pcl::PointIndices);
+  pcl::ModelCoefficients::Ptr sacs_coefficients (new pcl::ModelCoefficients);
+  sacs.segment (*sacs_inliers, *sacs_coefficients);
+
+  // Remove the table
+  pcl::ExtractIndices<pcl::PointXYZRGB> ei;
+  ei.setInputCloud (cloud_vg_ptr);
+  ei.setIndices (sacs_inliers);
+  ei.setNegative (false);
+  PointCloud::Ptr cloud_filtered_plan_ptr (new PointCloud);
+  // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered_plan_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
+  ei.filter (*cloud_filtered_plan_ptr);
+  ei.setNegative (true);
+  PointCloud::Ptr cloud_rest_ptr (new PointCloud);
+  // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_rest_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
+  ei.filter (*cloud_rest_ptr);
+  
+  // Remove isolated points
+  pcl::RadiusOutlierRemoval<pcl::PointXYZRGB> ror;
+  ror.setInputCloud(cloud_rest_ptr);
+  ror.setRadiusSearch(0.02);				///////////////////
+  ror.setMinNeighborsInRadius (30);			///////////////////
+  PointCloud::Ptr cloud_filtered (new PointCloud);
+  // pcl::PointCloud<pcl::PointXYZRGB>::Ptr clean_cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
+  ror.filter (*cloud_filtered);
 
   // Publish the data
-  pub.publish (output);
+  pub.publish (cloud_filtered);
 }
 
 int main (int argc, char** argv)
@@ -57,10 +108,10 @@ int main (int argc, char** argv)
   ros::NodeHandle nh;
 
   // Create a ROS subscriber for the input point cloud
-  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2> ("/camera/depth_registered/points", 1, cloud_cb);
+  ros::Subscriber sub = nh.subscribe<PointCloud> ("/camera/depth_registered/points", 1, cloud_cb);
 
   // Create a ROS publisher for the output point cloud
-  pub = nh.advertise<sensor_msgs::PointCloud2> ("/output_kinect", 1);
+  pub = nh.advertise<PointCloud> ("/output_kinect", 1);
 
   // Spin
   ros::spin ();
