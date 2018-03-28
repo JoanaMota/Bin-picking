@@ -11,8 +11,8 @@
         <!-- disable load_driver -->
         <arg name="load_driver" value="false" />
         <arg name="depth_registration" value="true" />
-        <!-- calibration
-        <arg name="rgb_camera_info_url" value="package://teleopvr_calibration/kinect_camera/rgb.yaml" />
-        <arg name="depth_camera_info_url" value="package://teleopvr_calibration/kinect_camera/depth.yaml" /> -->
+        <!-- calibration -->
+        <arg name="rgb_camera_info_url" value="package://bin_picking/calibration/rgb.yaml" />
+        <arg name="depth_camera_info_url" value="package://bin_picking/calibration/depth.yaml" />
     </include>
 </launch>
