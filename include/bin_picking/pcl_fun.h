@@ -9,13 +9,30 @@ within a specific range of X, Y and Z values.
 * @param cloud_pt_ptr - cloud after the application of the filter
 * @return void
 */
-void passthrough (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cloud_pt_ptr)
+void passthroughZ (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cloud_pt_ptr)
 {
   //Remove the points thar are far away from the sensor since thy are points from the ground
   pcl::PassThrough<pcl::PointXYZRGB> pt;
   pt.setInputCloud (cloud);
   pt.setFilterFieldName ("z");
   pt.setFilterLimits (0, 0.9);
+  pt.filter (*cloud_pt_ptr);
+}
+
+/**
+* @brief The PassThrough filter is used to identify and/or eliminate points 
+within a specific range of X, Y and Z values.
+* @param cloud - input cloud
+* @param cloud_pt_ptr - cloud after the application of the filter
+* @return void
+*/
+void passthroughX (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cloud_pt_ptr, float min, float max)
+{
+  //Remove the points thar are far away from the sensor since thy are points from the ground
+  pcl::PassThrough<pcl::PointXYZRGB> pt;
+  pt.setInputCloud (cloud);
+  pt.setFilterFieldName ("x");
+  pt.setFilterLimits (min, max);
   pt.filter (*cloud_pt_ptr);
 }
 
@@ -85,4 +102,45 @@ void radiusoutlierremoval (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cl
 }
 
 
+void centroidNormal (const PointCloud::ConstPtr& cloud, PointCloud::Ptr centroid_ptr, pcl::PointCloud<pcl::Normal>::Ptr normal_centroid_ptr)
+{
+  pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> ne;
+	
+	//  Calculate all the normals of the intire surface
+  ne.setInputCloud (cloud);
+  ne.setKSearch (50);
+  pcl::PointCloud<pcl::Normal>::Ptr cloud_surface_normals_ptr (new pcl::PointCloud<pcl::Normal>);
+  ne.compute (*cloud_surface_normals_ptr);
+
+	//  The center of the surface
+  Eigen::Vector4f centroid;
+  pcl::compute3DCentroid (*cloud, centroid);
+
+	//  Index of the center point
+	double valor_distancia, valor_distancia_anterior=100;
+	int indice_centro=0;
+	for (int it_centro=0; it_centro<cloud->points.size (); it_centro++)
+	{
+	  valor_distancia=abs(cloud->points[it_centro].x-centroid[0])+abs(cloud->points[it_centro].y-centroid[1])+abs(cloud->points[it_centro].z-centroid[2]);    
+	  if(valor_distancia<valor_distancia_anterior)
+	  {
+	    valor_distancia_anterior=valor_distancia;
+	    indice_centro=it_centro;
+	  }
+	} 
+	
+	// The center point
+  centroid_ptr->points.push_back (cloud->points[1]);
+  centroid_ptr->width = centroid_ptr->points.size ();
+  centroid_ptr->height = 1;
+  centroid_ptr->is_dense = true;
+
+  centroid_ptr->points[0].x=centroid[0];
+  centroid_ptr->points[0].y=centroid[1];
+  centroid_ptr->points[0].z=centroid[2];
+
+	// Normal of the centroid
+	normal_centroid_ptr->points.push_back (cloud_surface_normals_ptr->points[indice_centro]);
+
+}
 

@@ -21,3 +21,7 @@
 // #include <pcl/registration/sample_consensus_prerejective.h>
 
 #include <pcl/segmentation/sac_segmentation.h>
+
+#include <pcl/point_types.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/visualization/pcl_visualizer.h>
