@@ -32,26 +32,26 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualizat
 
 void cloud_cb (const PointCloud::ConstPtr& cloud_input)
 {
-  // Remove the points thar are far away from the sensor since thy are points from the ground
+  // Func. to remove the points thar are far away from the sensor since thy are points from the ground
   PointCloud::Ptr cloud_ptz_ptr (new PointCloud);
   passthroughZ(cloud_input, cloud_ptz_ptr);
 
   PointCloud::Ptr cloud_ptx_ptr (new PointCloud);
   passthroughX(cloud_ptz_ptr, cloud_ptx_ptr,-0.20,0.60);
 
-  // Perform the actual filtering
+  // Func. to perform the actual filtering
   PointCloud::Ptr cloud_vg_ptr (new PointCloud);
   voxelgrid(cloud_ptx_ptr, cloud_vg_ptr);
 
-  // Identify and remove the table
+  // Func. to identify and remove the table
   PointCloud::Ptr cloud_rest_ptr (new PointCloud);
   sacsegmentation_extindices(cloud_vg_ptr, cloud_rest_ptr);
 
-  // Remove isolated points
+  // Func. to remove isolated points
   PointCloud::Ptr cloud_filtered (new PointCloud);
   radiusoutlierremoval(cloud_rest_ptr, cloud_filtered);
 
-  // Determine the centroid and its normal to the point cloud
+  // Func. to determine the centroid and its normal to the point cloud
   PointCloud::Ptr centroid_ptr (new PointCloud);
 	pcl::PointCloud<pcl::Normal>::Ptr normal_centroid_ptr (new pcl::PointCloud<pcl::Normal>);
   centroidNormal(cloud_filtered,centroid_ptr,normal_centroid_ptr);

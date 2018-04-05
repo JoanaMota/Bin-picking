@@ -101,7 +101,13 @@ void radiusoutlierremoval (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cl
   ror.filter (*cloud_ror_ptr);
 }
 
-
+/**
+* @brief Determine the centroid of the input point cloud and its normal
+* @param cloud - input cloud
+* @param centroid_ptr - point cloud with the center point 
+* @param normal_centroid_ptr - normal line 
+* @return void
+*/
 void centroidNormal (const PointCloud::ConstPtr& cloud, PointCloud::Ptr centroid_ptr, pcl::PointCloud<pcl::Normal>::Ptr normal_centroid_ptr)
 {
   pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> ne;
