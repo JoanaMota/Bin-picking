@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<robot name="bin_picking" 
+    xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:include filename="$(find bin_picking)/urdf/binpicking_macro.xacro"/>
+    <xacro:bin_picking prefix="" />
+</robot>

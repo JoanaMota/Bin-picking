@@ -51,7 +51,7 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
   PointCloud::Ptr cloud_filtered (new PointCloud);
   radiusoutlierremoval(cloud_rest_ptr, cloud_filtered);
 
-  // Func. to determine the centroid and its normal to the point cloud
+  // Func. to determine the centroid of the input point cloud and its normal
   PointCloud::Ptr centroid_ptr (new PointCloud);
 	pcl::PointCloud<pcl::Normal>::Ptr normal_centroid_ptr (new pcl::PointCloud<pcl::Normal>);
   centroidNormal(cloud_filtered,centroid_ptr,normal_centroid_ptr);

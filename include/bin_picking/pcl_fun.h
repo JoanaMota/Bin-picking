@@ -112,7 +112,7 @@ void centroidNormal (const PointCloud::ConstPtr& cloud, PointCloud::Ptr centroid
 {
   pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> ne;
 	
-	//  Calculate all the normals of the intire surface
+	//  Calculate all the normals of the entire surface
   ne.setInputCloud (cloud);
   ne.setKSearch (50);
   pcl::PointCloud<pcl::Normal>::Ptr cloud_surface_normals_ptr (new pcl::PointCloud<pcl::Normal>);

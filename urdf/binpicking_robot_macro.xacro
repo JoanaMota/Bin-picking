@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<robot 
+    xmlns:xacro="http://ros.org/wiki/xacro">
+    <!-- xacro includes -->
+    <!-- include lrmate200id robot -->
+    <xacro:include filename="$(find fanuc_lrmate200id_support)/urdf/lrmate200id_macro.xacro"/>
+    <!-- include end effector gripper -->
+    <xacro:include filename="$(find bin_picking)/urdf/binpicking_gripper_macro.xacro"/>
+    <!-- manipulator macro -->
+    <xacro:macro name="bin_picking_manipulator" params="prefix">
+        <!-- lrmate200id robot -->
+        <xacro:fanuc_lrmate200id prefix="${prefix}robot_" />
+        <!-- end effector gripper -->
+        <xacro:bin_picking_gripper prefix="${prefix}eef_" />
+        <!-- joint connecting the lrmate200id to the end effector -->
+        <joint name="${prefix}robot_flange-${prefix}gripper_base_link" type="fixed">
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <parent link="${prefix}robot_flange" />
+            <child link="${prefix}eef_base_link" />
+        </joint>
+    </xacro:macro>
+</robot>

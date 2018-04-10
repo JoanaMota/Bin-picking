@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<robot 
+    xmlns:xacro="http://ros.org/wiki/xacro">
+    <!-- include the manipulator xacro -->
+    <xacro:include filename="$(find bin_picking)/urdf/binpicking_robot_macro.xacro"/>
+    <!-- include the kinetic xacro -->
+    <xacro:include filename="$(find hector_xacro_tools)/urdf/inertia_tensors.urdf.xacro"/>
+    <xacro:include filename="$(find hector_sensors_description)/urdf/kinect_camera.urdf.xacro" />
+
+    <!-- macro defining the whole robot -->
+    <xacro:macro name="bin_picking" params="prefix">
+        <xacro:bin_picking_manipulator prefix="${prefix}" />
+        <xacro:kinect_camera name="camera" parent="${prefix}robot_base_link">
+            <origin
+                xyz="0.68335329 -0.1191058 1.03896683"
+                rpy="3.0303556  1.7643787 -0.0945628" />
+        </xacro:kinect_camera>
+    </xacro:macro>
+</robot>
