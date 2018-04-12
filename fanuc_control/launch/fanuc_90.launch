@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="fanuc_control" pkg="fanuc_control" type="fanuc_control" />
+</launch>
