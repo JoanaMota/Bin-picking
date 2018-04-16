@@ -104,7 +104,7 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-add_executable(fanuc_control src/fanuc_control.cpp src/debug.cpp src/robotCom.cpp src/Position.cpp src/inputData.cpp src/dataReceiver.cpp)
+add_executable(fanuc_control src/fanuc_control.cpp src/debug.cpp src/robotCom.cpp src/Position.cpp src/inputData.cpp)
 # add_executable(fanuc_control src/fanuc_control.cpp src/debug.cpp src/robotCom.cpp src/Position.cpp src/inputData.cpp src/dataReceiver.cpp)
 
 ## Add cmake target dependencies of the executable/library

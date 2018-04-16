@@ -1,5 +1,5 @@
 #define _MAIN_
-#include "fanuc_control.h"
+#include "../include/fanuc_control/fanuc_control.h"
 
 
 
@@ -42,7 +42,7 @@ int main (int argc, char* argv[])
         // c.runtpp(tppname);
         
         //MOVE TO JOINTS 
-        c.movtojpos("-0.000 0.000 -0.000 0.000 -90.000 -0.000 0 10 1");
+        c.movtojpos("-0.000 0.000 -0.000 0.000 -90.000 -0.000 0 40 1");
 
         std_msgs::String value_cart;
         std_msgs::String value_joint;
@@ -71,7 +71,7 @@ int main (int argc, char* argv[])
         std::cerr << "Exception: " << e.what() << "\n";
     }
 
-    while(ros::ok())
+    // while(ros::ok())
         ros::spinOnce();
 
     return 0;

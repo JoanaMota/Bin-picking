@@ -1,4 +1,7 @@
 <?xml version="1.0"?>
 <launch>
+    <arg name="topic" default="/fanuc_joint" />
+    <!-- <arg name="topic_cart" default="/fanuc_cart" /> -->
     <node name="fanuc_control" pkg="fanuc_control" type="fanuc_control" />
+    <node pkg="rostopic" type="rostopic" name="topic_j" output="screen" args="echo $(arg topic)" />
 </launch>
