@@ -17,6 +17,6 @@
     
     <include file="$(find bin_picking)/launch/load_bin_picking.launch" />
     
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find industrial_robot_client)/config/robot_state_visualize.rviz" required="true" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find bin_picking)/config/robot_state_visualize.rviz" required="true" />
 
 </launch>

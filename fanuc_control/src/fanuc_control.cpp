@@ -42,7 +42,8 @@ int main (int argc, char* argv[])
         // c.runtpp(tppname);
         
         //MOVE TO JOINTS 
-        c.movtojpos("-0.000 0.000 -0.000 0.000 -90.000 -0.000 0 40 1");
+        //c.movtojpos("-0.000 0.000 -0.000 0.000 -90.000 -0.000 1 40 1");
+        c.movtocpos("384.980 0.000 0.000 -179.996 0.013 -0.003 0 1 1 0 0 0 1 10 1");
 
         std_msgs::String value_cart;
         std_msgs::String value_joint;
