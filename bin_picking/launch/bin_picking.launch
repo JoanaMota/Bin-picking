@@ -1,0 +1,11 @@
+<launch>
+
+    <include file="$(find bin_picking)/launch/robot_interface_streaming_bin_picking.launch">
+        <arg name="robot_ip" value="192.168.0.231" />
+    </include>
+
+    <include file="$(find bin_picking)/launch/load_bin_picking.launch" />
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+</launch>
