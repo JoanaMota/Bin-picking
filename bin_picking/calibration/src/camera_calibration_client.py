@@ -68,16 +68,19 @@ translations = []
 
 while raw_input('') != 'y':
 
+    # /world_effector
     robot = tfBuffer.lookup_transform(
-        'robot_link_4',
         'robot_base_link',
+        'robot_link_4',
         rospy.Time())
+    world_effector_pub.publish(robot.transform)
+
+    # /camera_object
     fiducial = tfBuffer.lookup_transform(
         'camera_link',
         'calibration_object',
         rospy.Time())
 
-    world_effector_pub.publish(robot.transform)
     camera_object_pub.publish(fiducial.transform)
 
     print '<saved state>'

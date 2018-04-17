@@ -6,7 +6,7 @@
     <include file="$(find aruco_detect)/launch/aruco_detect.launch" >
         <arg name="camera" value="camera/rgb" />
         <arg name="image" value="image_raw" />
-        <arg name="fiducial_len" value="0.093" />
+        <arg name="fiducial_len" value="0.137" />
     </include>
     <!-- launch the robot stream interface -->
     <include file="$(find bin_picking)/launch/bin_picking.launch">

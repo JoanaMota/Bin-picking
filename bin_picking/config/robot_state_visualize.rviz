@@ -197,9 +197,9 @@ Visualization Manager:
           Value: true
       Marker Scale: 0.5
       Name: TF
-      Show Arrows: true
+      Show Arrows: false
       Show Axes: true
-      Show Names: true
+      Show Names: false
       Tree:
         robot_base_link:
           camera_link:
@@ -278,25 +278,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.12598324
+      Distance: 2.82417417
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.00201723911
-        Y: -0.394944429
-        Z: 0.00743315276
+        X: 0.0100553259
+        Y: -0.462681085
+        Z: 0.156597495
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.460397243
+      Pitch: 0.445397258
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.635393143
+      Yaw: 1.34039271
     Saved: ~
 Window Geometry:
   Displays:
