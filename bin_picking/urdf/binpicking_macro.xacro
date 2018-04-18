@@ -11,12 +11,27 @@
     <xacro:macro name="bin_picking" params="prefix">
         <xacro:bin_picking_manipulator prefix="${prefix}" />
         <xacro:kinect_camera name="camera" parent="${prefix}robot_link_4">
+            <!-- bernardo -->
             <!-- <origin
                 xyz="0.68335329 -0.1191058 1.03896683"
                 rpy="3.0303556  1.7643787 -0.0945628" /> -->
-            <origin
+            <!-- joana 1 -->
+            <!-- <origin
                 xyz="0.248546721125 0.0815121571909 -0.00896883288009"
-                rpy="-1.5638335 0.1423606 1.5261973" />
+                rpy="-1.5638335 0.1423606 1.5261973" /> -->
+            <!-- joana XYZ com Y e Z trocados -->
+            <!-- <origin
+                xyz="0.278189529766 0.113729970677 -0.0189680751133"
+                rpy="-1.5683314 1.5864961 0.0279292" /> -->
+            <!-- joana XYZ -->
+            <!-- <origin
+                xyz="0.278189529766 0.113729970677 -0.0189680751133"
+                rpy="-1.5683314 0.0279292 1.5864961" /> -->
+             <!-- joana convert euler_from_quaternion -->
+            <origin
+                xyz="0.273824339688 0.11318137131 -0.0197138711695"
+                rpy="1.43637243915 1.55845880529 2.99165474735" />
+
         </xacro:kinect_camera>
     </xacro:macro>
 </robot>

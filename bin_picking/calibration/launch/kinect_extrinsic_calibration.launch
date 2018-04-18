@@ -11,7 +11,7 @@
     <!-- launch the robot stream interface -->
     <include file="$(find bin_picking)/launch/bin_picking.launch">
     </include>
-    <!-- launch the calibrator node -->
+   <!-- launch the calibrator node -->
     <node pkg="visp_hand2eye_calibration" type="visp_hand2eye_calibration_calibrator" name="calibrator_node" />
     
     <!-- does not work!!! -->

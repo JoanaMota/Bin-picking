@@ -126,7 +126,28 @@ print '======================'
 calibratorService = rospy.ServiceProxy(
     'compute_effector_camera', compute_effector_camera)
 
-print calibratorService()
+result = calibratorService()
+x=result.effector_camera.rotation.x
+y=result.effector_camera.rotation.y
+z=result.effector_camera.rotation.z
+w=result.effector_camera.rotation.w
+
+print result
+print "x=",x
+print "y=",y
+print "z=",z
+print "w=",w
+
+quaternion = (x,y,z,w)
+
+euler = tf.transformations.euler_from_quaternion(quaternion)
+roll = euler[0]
+pitch = euler[1]
+yaw = euler[2]
+
+print "roll=",roll
+print "pitch=",pitch
+print "yaw=",yaw
 
 resetService = rospy.ServiceProxy('reset', reset)
 resetService()
