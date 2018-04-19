@@ -24,7 +24,7 @@
         <xacro:bin_picking_sensor prefix="${prefix}ls_" />
 
         <joint name="${prefix}eef_tool_tip-${prefix}ls_base_link" type="fixed">
-            <origin xyz="0.047 0.0166 -0.0636" rpy="0 0 0" />
+            <origin xyz="0.0478 0.0166 -0.0636" rpy="0 0 0" />
             <parent link="${prefix}eef_tool_tip" />
             <child link="${prefix}ls_base_link" />
         </joint>
