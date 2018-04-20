@@ -12,7 +12,6 @@
 
 //for the typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud
 #include <pcl_ros/point_cloud.h>
-#include <pcl/point_types.h>
 
 
 
@@ -25,3 +24,11 @@
 #include <pcl/point_types.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/visualization/pcl_visualizer.h>
+
+//for the euclideanclusterextraction
+#include <pcl/ModelCoefficients.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/kdtree/kdtree.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/segmentation/extract_clusters.h>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-    <node name="bin_picking" pkg="bin_picking" type="planeDetection" />
+    <node name="bin_picking" pkg="bin_picking" type="objDetection" />
     <!-- start rviz -->
     <node pkg="rviz" type="rviz" name="my_rviz"/> 
     <include file="$(find openni_launch)/launch/openni.launch">

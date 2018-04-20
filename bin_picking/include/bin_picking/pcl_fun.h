@@ -48,7 +48,7 @@ void voxelgrid (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cloud_vg_ptr)
   // Perform the actual filtering
   pcl::VoxelGrid<pcl::PointXYZRGB> vg;
   vg.setInputCloud (cloud);
-  vg.setLeafSize (0.005f, 0.005f, 0.005f);
+  vg.setLeafSize (0.003f, 0.003f, 0.003f); // 5mm
   vg.filter (*cloud_vg_ptr);
 }
 
@@ -67,7 +67,7 @@ void sacsegmentation_extindices (const PointCloud::ConstPtr& cloud, PointCloud::
   sacs.setModelType (pcl::SACMODEL_PLANE);
   sacs.setMethodType (pcl::SAC_RANSAC);
   sacs.setMaxIterations (1000);
-  sacs.setDistanceThreshold (0.02);
+  sacs.setDistanceThreshold (0.015);
   sacs.setInputCloud (cloud);
   pcl::PointIndices::Ptr sacs_inliers (new pcl::PointIndices);
   pcl::ModelCoefficients::Ptr sacs_coefficients (new pcl::ModelCoefficients);
@@ -97,7 +97,7 @@ void radiusoutlierremoval (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cl
   pcl::RadiusOutlierRemoval<pcl::PointXYZRGB> ror;
   ror.setInputCloud(cloud);
   ror.setRadiusSearch(0.02);				
-  ror.setMinNeighborsInRadius (30);			
+  ror.setMinNeighborsInRadius (15);			
   ror.filter (*cloud_ror_ptr);
 }
 
@@ -148,5 +148,29 @@ void centroidNormal (const PointCloud::ConstPtr& cloud, PointCloud::Ptr centroid
 	// Normal of the centroid
 	normal_centroid_ptr->points.push_back (cloud_surface_normals_ptr->points[indice_centro]);
 
+}
+
+/**
+* @brief The EuclideanClusterExtraction ..............EXPLAIN
+* @param cloud - input cloud
+* @param cloud_pt_ptr - cloud after the application of the filter
+* @return void
+*/
+void euclideanclusterextraction (const PointCloud::ConstPtr& cloud, std::vector<pcl::PointIndices>& ece_indices)
+{
+    pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ece;
+    ece.setClusterTolerance (0.007); //7mm
+    // setClusterTolerance()---If you take a very small value, it can happen that an actual object can be seen as multiple clusters. 
+    // On the other hand, if you set the value too high, it could happen, that multiple objects are seen as one cluster.
+    ece.setMinClusterSize (15);
+    ece.setMaxClusterSize (30000);
+    
+    // Creating the KdTree object for the search method of the extraction
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr ece_tree_ptr (new pcl::search::KdTree<pcl::PointXYZRGB>);
+    ece_tree_ptr->setInputCloud (cloud);    
+
+    ece.setSearchMethod (ece_tree_ptr);
+    ece.setInputCloud (cloud);
+    ece.extract (ece_indices);
 }
 

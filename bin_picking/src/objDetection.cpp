@@ -20,6 +20,7 @@
 using namespace std;
 
 ros::Publisher pub;
+ros::Publisher pub2;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("Objetos"));		//Declarar a Visualização
 
@@ -36,6 +37,7 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
   PointCloud::Ptr cloud_ptz_ptr (new PointCloud);
   passthroughZ(cloud_input, cloud_ptz_ptr);
 
+  // Func. to remove the base of the robot
   PointCloud::Ptr cloud_ptx_ptr (new PointCloud);
   passthroughX(cloud_ptz_ptr, cloud_ptx_ptr,-0.20,0.60);
 
@@ -51,6 +53,43 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
   PointCloud::Ptr cloud_filtered (new PointCloud);
   radiusoutlierremoval(cloud_rest_ptr, cloud_filtered);
 
+  // Separate the diffrent objs
+  std::vector<pcl::PointIndices> ece_indices;
+  euclideanclusterextraction (cloud_filtered, ece_indices);
+  // pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ece;
+  // ece.setClusterTolerance (0.05); //7mm
+  // // setClusterTolerance()---If you take a very small value, it can happen that an actual object can be seen as multiple clusters. 
+  // // On the other hand, if you set the value too high, it could happen, that multiple objects are seen as one cluster.
+  // ece.setMinClusterSize (15);
+  // ece.setMaxClusterSize (20000);
+  
+  // // Creating the KdTree object for the search method of the extraction
+  // pcl::search::KdTree<pcl::PointXYZRGB>::Ptr ece_tree_ptr (new pcl::search::KdTree<pcl::PointXYZRGB>);
+  // ece_tree_ptr->setInputCloud (cloud_filtered);    
+
+  // ece.setSearchMethod (ece_tree_ptr);
+  // ece.setInputCloud (cloud_filtered);
+  // ece.extract (ece_indices);
+  
+  pcl::PCDWriter writer;
+
+  int j = 0;
+  for (std::vector<pcl::PointIndices>::const_iterator it = ece_indices.begin (); it != ece_indices.end (); ++it)
+  {
+    PointCloud::Ptr cloud_cluster (new PointCloud);
+    for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
+      cloud_cluster->points.push_back (cloud_filtered->points[*pit]); //*
+    cloud_cluster->width = cloud_cluster->points.size ();
+    cloud_cluster->height = 1;
+    cloud_cluster->is_dense = true;
+
+    std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
+    std::stringstream ss;
+    j++;
+    ss << "cloud_cluster_" << j << ".pcd";
+    writer.write<pcl::PointXYZRGB> (ss.str (), *cloud_cluster, false); //*
+  }
+  
   // Func. to determine the centroid of the input point cloud and its normal
   PointCloud::Ptr centroid_ptr (new PointCloud);
 	pcl::PointCloud<pcl::Normal>::Ptr normal_centroid_ptr (new pcl::PointCloud<pcl::Normal>);
@@ -74,6 +113,7 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
   viewer->spinOnce();
   // Publish the data
   pub.publish (cloud_filtered);
+  pub2.publish (cloud_rest_ptr);
 }
 
 
@@ -91,6 +131,7 @@ int main (int argc, char** argv)
 
   // Create a ROS publisher for the output point cloud
   pub = nh.advertise<PointCloud> ("/output_kinect", 1);
+  pub2 = nh.advertise<PointCloud> ("/output_kinect_before_isolated_points", 1);
 
   // Spin
   ros::spin ();

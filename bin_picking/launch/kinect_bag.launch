@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-    <node name="bin_picking" pkg="bin_picking" type="planeDetection" />
+    <!-- <node name="bin_picking" pkg="bin_picking" type="objDetection" /> -->
     <arg name="path" default="/home/joana/catkin_ws/src/Bin-picking/bin_picking/bagfiles/" />
     <arg name="bag" default="kinectj6" />
     <!-- <node pkg="rosbag" type="play" name="player" output="screen" args="/home/joana/catkin_ws/src/Bin-picking/bagfiles/kinectj6.bag -l"/> -->
