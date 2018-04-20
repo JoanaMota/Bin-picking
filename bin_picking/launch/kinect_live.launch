@@ -7,7 +7,7 @@
         <!-- disable load_driver -->
         <arg name="depth_registration" value="true" />
         <!-- calibration -->
-        <arg name="rgb_camera_info_url" value="package://bin_picking/calibration/rgb.yaml" />
-        <arg name="depth_camera_info_url" value="package://bin_picking/calibration/depth.yaml" />
+        <arg name="rgb_camera_info_url" value="package://bin_picking/calibration/kinect/rgb.yaml" />
+        <arg name="depth_camera_info_url" value="package://bin_picking/calibration/kinect/depth.yaml" />
     </include>
 </launch>
