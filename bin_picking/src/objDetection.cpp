@@ -21,6 +21,9 @@ using namespace std;
 
 ros::Publisher pub;
 ros::Publisher pub2;
+ros::Publisher pub_centroid;
+ros::Publisher pub_normal;
+
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("Objetos"));		//Declarar a Visualização
 
@@ -73,6 +76,8 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
   
   pcl::PCDWriter writer;
 
+  PointCloud::Ptr centroid_ptr (new PointCloud);
+  pcl::PointCloud<pcl::Normal>::Ptr normal_centroid_ptr (new pcl::PointCloud<pcl::Normal>);
   int j = 0;
   for (std::vector<pcl::PointIndices>::const_iterator it = ece_indices.begin (); it != ece_indices.end (); ++it)
   {
@@ -83,17 +88,16 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
 
+
     std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
     std::stringstream ss;
     j++;
     ss << "cloud_cluster_" << j << ".pcd";
-    writer.write<pcl::PointXYZRGB> (ss.str (), *cloud_cluster, false); //*
+    // writer.write<pcl::PointXYZRGB> (ss.str (), *cloud_cluster, false); //*
   }
   
-  // Func. to determine the centroid of the input point cloud and its normal
-  PointCloud::Ptr centroid_ptr (new PointCloud);
-	pcl::PointCloud<pcl::Normal>::Ptr normal_centroid_ptr (new pcl::PointCloud<pcl::Normal>);
-  centroidNormal(cloud_filtered,centroid_ptr,normal_centroid_ptr);
+    // Func. to determine the centroid of the input point cloud and its normal
+    centroidNormal(cloud_filtered,centroid_ptr,normal_centroid_ptr);
 
 	// Visualization of the point cloud with only the box
 	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGB> surface_handler (cloud_filtered,128,255,0);
@@ -114,6 +118,8 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
   // Publish the data
   pub.publish (cloud_filtered);
   pub2.publish (cloud_rest_ptr);
+  pub_centroid.publish (centroid_ptr);
+  pub_normal.publish (normal_centroid_ptr);
 }
 
 
@@ -132,6 +138,8 @@ int main (int argc, char** argv)
   // Create a ROS publisher for the output point cloud
   pub = nh.advertise<PointCloud> ("/output_kinect", 1);
   pub2 = nh.advertise<PointCloud> ("/output_kinect_before_isolated_points", 1);
+  pub_centroid = nh.advertise<PointCloud> ("/cloud_centroid", 1);
+  pub_normal = nh.advertise<PointCloud> ("/cloud_centroid_normal", 1);
 
   // Spin
   ros::spin ();
