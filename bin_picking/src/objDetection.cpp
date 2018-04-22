@@ -57,69 +57,73 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
   radiusoutlierremoval(cloud_rest_ptr, cloud_filtered);
 
   // Separate the diffrent objs
-  std::vector<pcl::PointIndices> ece_indices;
+  vector<pcl::PointIndices> ece_indices;
   euclideanclusterextraction (cloud_filtered, ece_indices);
-  // pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ece;
-  // ece.setClusterTolerance (0.05); //7mm
-  // // setClusterTolerance()---If you take a very small value, it can happen that an actual object can be seen as multiple clusters. 
-  // // On the other hand, if you set the value too high, it could happen, that multiple objects are seen as one cluster.
-  // ece.setMinClusterSize (15);
-  // ece.setMaxClusterSize (20000);
   
-  // // Creating the KdTree object for the search method of the extraction
-  // pcl::search::KdTree<pcl::PointXYZRGB>::Ptr ece_tree_ptr (new pcl::search::KdTree<pcl::PointXYZRGB>);
-  // ece_tree_ptr->setInputCloud (cloud_filtered);    
-
-  // ece.setSearchMethod (ece_tree_ptr);
-  // ece.setInputCloud (cloud_filtered);
-  // ece.extract (ece_indices);
-  
+  // To save pcds on files
   pcl::PCDWriter writer;
+  // Vectors to save all the center points and normals
+  std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> Center;
+  std::vector<pcl::PointCloud<pcl::Normal>::Ptr> Normal;
 
-  PointCloud::Ptr centroid_ptr (new PointCloud);
-  pcl::PointCloud<pcl::Normal>::Ptr normal_centroid_ptr (new pcl::PointCloud<pcl::Normal>);
-  int j = 0;
+  int objs = 0;
   for (std::vector<pcl::PointIndices>::const_iterator it = ece_indices.begin (); it != ece_indices.end (); ++it)
   {
-    PointCloud::Ptr cloud_cluster (new PointCloud);
+    PointCloud::Ptr centroid_ptr (new PointCloud);
+    pcl::PointCloud<pcl::Normal>::Ptr normal_centroid_ptr (new pcl::PointCloud<pcl::Normal>);
+    PointCloud::Ptr cloud_cluster (new PointCloud); 
     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
       cloud_cluster->points.push_back (cloud_filtered->points[*pit]); //*
     cloud_cluster->width = cloud_cluster->points.size ();
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
-
-
-    std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
-    std::stringstream ss;
-    j++;
-    ss << "cloud_cluster_" << j << ".pcd";
-    // writer.write<pcl::PointXYZRGB> (ss.str (), *cloud_cluster, false); //*
-  }
   
     // Func. to determine the centroid of the input point cloud and its normal
-    centroidNormal(cloud_filtered,centroid_ptr,normal_centroid_ptr);
+    centroidNormal(cloud_cluster,centroid_ptr,normal_centroid_ptr);
+    //save the center point
+    Center.push_back(centroid_ptr);
+    //save the normal of the center point
+    Normal.push_back(normal_centroid_ptr);
 
-	// Visualization of the point cloud with only the box
-	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGB> surface_handler (cloud_filtered,128,255,0);
-	viewer->addPointCloud (cloud_filtered, surface_handler, "Point Cloud");
-	viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "Point Cloud");
+    cout << "Point Cloud " << objs << " has got " << Center[0]->size() << " Points" << endl;
 
-  // Visualization of the centroid point
-	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGB> surface_handler_centroid (centroid_ptr,51,51,250);
-	viewer->addPointCloud (centroid_ptr, surface_handler_centroid, "Point Cloud centroid");
-	viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "Point Cloud centroid");
-  
-  // Visualization of the the normal on the centroid
-  viewer->addPointCloudNormals<pcl::PointXYZRGB, pcl::Normal> (centroid_ptr, normal_centroid_ptr,100,0.1, "Point Normals");
-	viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 3, "Point Normals");
-	viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 0, 0.5, 1, "Point Normals"); 
+    cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << endl;
+    stringstream ss_cloud, ss_centroid, ss_normal;
+    objs++;
+    ss_cloud << "cloud_cluster_" << objs;
+    ss_centroid << "cloud_centroid_" << objs;
+    ss_normal << "cloud_normal_" << objs;
+    string pointcloudName = ss_cloud.str();
+    string pointcloudCentroid = ss_centroid.str();
+    string pointcloudNormal = ss_normal.str();
+    // writer.write<pcl::PointXYZRGB> (ss.str (), *cloud_cluster, false); //*
+      
+    // Visualization of the point cloud with the objects
+    pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGB> surface_handler (cloud_cluster,255,255,0);
+    viewer->addPointCloud (cloud_cluster, surface_handler, pointcloudName);
+    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, pointcloudName);
+
+    // Visualization of the centroid point of every object
+    pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGB> surface_handler_centroid (centroid_ptr,0,51,250);
+    viewer->addPointCloud (centroid_ptr, surface_handler_centroid, pointcloudCentroid);
+    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, pointcloudCentroid);
+    
+    // Visualization of the the normal on the centroid of every object
+    viewer->addPointCloudNormals<pcl::PointXYZRGB, pcl::Normal> (centroid_ptr, normal_centroid_ptr,100,0.1, pointcloudNormal);
+    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 3, pointcloudNormal);
+    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 0, 0.5, 1, pointcloudNormal); 
+    
+  }
+  cout << Center[4]->points[0].x*1000 << endl;
+  cout << Center[0]->points[0].x*1000 << endl;
 	
   viewer->spinOnce();
+
   // Publish the data
   pub.publish (cloud_filtered);
   pub2.publish (cloud_rest_ptr);
-  pub_centroid.publish (centroid_ptr);
-  pub_normal.publish (normal_centroid_ptr);
+  pub_centroid.publish (Center[0]);
+  pub_normal.publish (Normal[0]);
 }
 
 

@@ -114,7 +114,13 @@ void centroidNormal (const PointCloud::ConstPtr& cloud, PointCloud::Ptr centroid
 	
 	//  Calculate all the normals of the entire surface
   ne.setInputCloud (cloud);
-  ne.setKSearch (50);
+  // Create an empty kdtree representation, and pass it to the normal estimation object.
+  // Its content will be filled inside the object, based on the given input dataset (as no other search surface is given).
+  pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB> ());
+  ne.setSearchMethod (tree);
+  // ne.setKSearch (50);
+  // Use all neighbors in a sphere of radius 3cm
+  ne.setRadiusSearch (0.03);
   pcl::PointCloud<pcl::Normal>::Ptr cloud_surface_normals_ptr (new pcl::PointCloud<pcl::Normal>);
   ne.compute (*cloud_surface_normals_ptr);
 
@@ -123,14 +129,14 @@ void centroidNormal (const PointCloud::ConstPtr& cloud, PointCloud::Ptr centroid
   pcl::compute3DCentroid (*cloud, centroid);
 
 	//  Index of the center point
-	double valor_distancia, valor_distancia_anterior=100;
+	double distance, distance_before=100;
 	int indice_centro=0;
 	for (int it_centro=0; it_centro<cloud->points.size (); it_centro++)
 	{
-	  valor_distancia=abs(cloud->points[it_centro].x-centroid[0])+abs(cloud->points[it_centro].y-centroid[1])+abs(cloud->points[it_centro].z-centroid[2]);    
-	  if(valor_distancia<valor_distancia_anterior)
+	  distance=abs(cloud->points[it_centro].x-centroid[0])+abs(cloud->points[it_centro].y-centroid[1])+abs(cloud->points[it_centro].z-centroid[2]);    
+	  if(distance<distance_before)
 	  {
-	    valor_distancia_anterior=valor_distancia;
+	    distance_before=distance;
 	    indice_centro=it_centro;
 	  }
 	} 
