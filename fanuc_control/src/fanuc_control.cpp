@@ -79,7 +79,7 @@ int main (int argc, char* argv[])
         // c.movtojpos("-0.000 0.000 -0.000 0.000 -90.000 -0.000 1 40 1");
         
         //MOVE TO POINT -- for Kinect to acquire point cloud
-        // c.movtocpos("420.000 0.000 280.000 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
+        // c.movtocpos("420.000 0.000 280.000 -179.996 0.013 -1.003 0 1 1 0 0 0 1 40 1");
         stringstream ss_input_arg;
 
         //ATENCAO CONVERTER PARA A PONTA DO ROBOT
@@ -89,7 +89,7 @@ int main (int argc, char* argv[])
         //130.188-162.5
 
         //Obj 1
-        c.movtocpos("428.726 139.976 -130 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
+        c.movtocpos("494.433 72.7399 -120 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
         //Obj 4
         // c.movtocpos("398.434 126.961 -30 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
 

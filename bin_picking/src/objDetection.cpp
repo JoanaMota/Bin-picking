@@ -98,7 +98,7 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
     string pointcloudName = ss_cloud.str();
     string pointcloudCentroid = ss_centroid.str();
     string pointcloudNormal = ss_normal.str();
-    // writer.write<pcl::PointXYZRGB> ("cloud_cluster_1.pcd", *Center[1], false); //*
+    // writer.write<pcl::PointXYZRGB> ("cloud_cluster_1.pcd", *Center[0], false); //*
       
     // Visualization of the point cloud with the objects
     pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGB> surface_handler (cloud_cluster,255,255,0);
@@ -116,16 +116,16 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
     viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 0, 0.5, 1, pointcloudNormal); 
     
   }
-  cout << Center[4]->points[0].x*1000 << endl;
-  cout << Center[0]->points[0].x*1000 << endl;
+  // cout << Center[4]->points[0].x*1000 << endl;
+  // cout << Center[0]->points[0].x*1000 << endl;
 	
   viewer->spinOnce();
 
   // Publish the data
   pub.publish (cloud_filtered);
   pub2.publish (cloud_rest_ptr);
-  pub_centroid.publish (Center[4]);
-  pub_normal.publish (Normal[4]);
+  pub_centroid.publish (Center[3]);
+  pub_normal.publish (Normal[3]);
 }
 
 
