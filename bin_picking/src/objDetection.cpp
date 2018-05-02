@@ -33,7 +33,6 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualizat
 * @param cloud_input - cloud to process 
 * @return void
 */
-
 void cloud_cb (const PointCloud::ConstPtr& cloud_input)
 {
   // Func. to remove the points thar are far away from the sensor since thy are points from the ground
@@ -69,9 +68,11 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
   int objs = 0;
   for (std::vector<pcl::PointIndices>::const_iterator it = ece_indices.begin (); it != ece_indices.end (); ++it)
   {
+    //creation of the variables to be replace in each loop
+    PointCloud::Ptr cloud_cluster (new PointCloud); 
     PointCloud::Ptr centroid_ptr (new PointCloud);
     pcl::PointCloud<pcl::Normal>::Ptr normal_centroid_ptr (new pcl::PointCloud<pcl::Normal>);
-    PointCloud::Ptr cloud_cluster (new PointCloud); 
+
     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
       cloud_cluster->points.push_back (cloud_filtered->points[*pit]); //*
     cloud_cluster->width = cloud_cluster->points.size ();
@@ -88,15 +89,16 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
     cout << "Point Cloud " << objs << " has got " << Center[0]->size() << " Points" << endl;
 
     cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << endl;
-    stringstream ss_cloud, ss_centroid, ss_normal;
+    stringstream ss, ss_cloud, ss_centroid, ss_normal;
     objs++;
+    ss << "cloud_cluster_" << objs << ".pcd";
     ss_cloud << "cloud_cluster_" << objs;
     ss_centroid << "cloud_centroid_" << objs;
     ss_normal << "cloud_normal_" << objs;
     string pointcloudName = ss_cloud.str();
     string pointcloudCentroid = ss_centroid.str();
     string pointcloudNormal = ss_normal.str();
-    // writer.write<pcl::PointXYZRGB> (ss.str (), *cloud_cluster, false); //*
+    // writer.write<pcl::PointXYZRGB> ("cloud_cluster_1.pcd", *Center[1], false); //*
       
     // Visualization of the point cloud with the objects
     pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGB> surface_handler (cloud_cluster,255,255,0);
@@ -122,8 +124,8 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
   // Publish the data
   pub.publish (cloud_filtered);
   pub2.publish (cloud_rest_ptr);
-  pub_centroid.publish (Center[0]);
-  pub_normal.publish (Normal[0]);
+  pub_centroid.publish (Center[4]);
+  pub_normal.publish (Normal[4]);
 }
 
 
@@ -133,7 +135,7 @@ int main (int argc, char** argv)
   viewer->addCoordinateSystem (0.1,0,0,0);
 
   // Initialize ROS
-  ros::init (argc, argv, "bin_picking");
+  ros::init (argc, argv, "bin_picking_objDetection");
   ros::NodeHandle nh;
 
   // Create a ROS subscriber for the input point cloud

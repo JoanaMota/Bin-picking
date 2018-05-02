@@ -1,7 +1,35 @@
 #define _MAIN_
 #include "../include/fanuc_control/fanuc_control.h"
+#include "../../bin_picking/include/bin_picking/header_pcl.h"
+
+using namespace std;
+
+typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
+typedef pcl::PointCloud<pcl::Normal> PointCloudNormal;
+float X, Y, Z, normal_X, normal_Y, normal_Z;
 
 
+void centroid (const geometry_msgs::Vector3 centroid_robot_base)
+{
+    X = centroid_robot_base.x;
+    Y = centroid_robot_base.y;
+    Z = centroid_robot_base.z;
+
+    cout << "X: " << X << endl;
+    cout << "Y: " << Y << endl;
+    cout << "Z: " << Z << endl;
+}
+
+void normal (const geometry_msgs::Vector3 normal_robot_base)
+{
+    normal_X = normal_robot_base.x;
+    normal_Y = normal_robot_base.y;
+    normal_Z = normal_robot_base.z;
+
+    // cout << "W: " << normal_X << endl;
+    // cout << "P: " << normal_Y << endl;
+    // cout << "R: " << normal_Z << endl;
+}
 
 int main (int argc, char* argv[])
 {
@@ -13,14 +41,19 @@ int main (int argc, char* argv[])
     result = check_for_input(argc,argv);
     if(result == -1)
         return 0;
-
-
-
  
     ros::init(argc , argv , "fanuc_control");
+
     ros::NodeHandle n;
+    // Subscribe centroid in relation to the base of the Robot published by the pointTFtransfer.cpp
+    ros::Subscriber sub_centroid = n.subscribe<geometry_msgs::Vector3> ("/centroid_in_robot_base", 1, centroid);
+    // Subscribe normal in relation to the base of the Robot published by the pointTFtransfer.cpp
+    ros::Subscriber sub_normal = n.subscribe<geometry_msgs::Vector3> ("/normal_in_robot_base", 1, normal);
+    
     ros::Publisher fanuc_cart  = n.advertise<std_msgs::String>("fanuc_cart", 1000);
     ros::Publisher fanuc_joint = n.advertise<std_msgs::String>("fanuc_joint", 1000);
+
+
     ros::Rate loop_rate(20);
 
     // dataReceiver data;
@@ -33,6 +66,7 @@ int main (int argc, char* argv[])
         tcp::resolver::query query(Global_IP,Global_Port);
         tcp::resolver::iterator iterator = resolver.resolve(query);
 
+
         // Communication Initiation //
         // robotCom c(io_service, iterator); // Necessary in included file!!
 
@@ -42,9 +76,23 @@ int main (int argc, char* argv[])
         // c.runtpp(tppname);
         
         //MOVE TO JOINTS - Inicial position 
-        c.movtojpos("-0.000 0.000 -0.000 0.000 -90.000 -0.000 1 40 1");
-        //MOVE TO POINT
-        // c.movtocpos("384.980 0.000 0.000 -179.996 0.013 -0.003 0 1 1 0 0 0 1 10 1");
+        // c.movtojpos("-0.000 0.000 -0.000 0.000 -90.000 -0.000 1 40 1");
+        
+        //MOVE TO POINT -- for Kinect to acquire point cloud
+        // c.movtocpos("420.000 0.000 280.000 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
+        stringstream ss_input_arg;
+
+        //ATENCAO CONVERTER PARA A PONTA DO ROBOT
+        // ss_input_arg << X << Y << Z << "-179.996 0.013 -0.003 0 1 1 0 0 0 1 10 1";
+        // string input_arg = ss_input_arg.str();
+        // c.movtocpos(input_arg);
+        //130.188-162.5
+
+        //Obj 1
+        c.movtocpos("428.726 139.976 -130 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
+        //Obj 4
+        // c.movtocpos("398.434 126.961 -30 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
+
 
         std_msgs::String value_cart;
         std_msgs::String value_joint;
@@ -60,6 +108,8 @@ int main (int argc, char* argv[])
             value_cart.data = c.getcrcpos();
             value_joint.data = c.getcrjpos();
 
+            cout << value_cart.data << endl;
+
             fanuc_cart.publish(value_cart);
             fanuc_joint.publish(value_joint);
 
@@ -73,8 +123,7 @@ int main (int argc, char* argv[])
         std::cerr << "Exception: " << e.what() << "\n";
     }
 
-    // while(ros::ok())
-        ros::spinOnce();
+    ros::spinOnce();
 
     return 0;
 }

@@ -32,3 +32,15 @@
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/segmentation/extract_clusters.h>
+
+// for  implementation of a TransformListener to help make the task of receiving transforms easier
+#include <tf2_ros/transform_listener.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/Vector3.h>
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/message_filter.h"
+#include <tf/transform_listener.h>
+#include "geometry_msgs/PointStamped.h"
+#include "message_filters/subscriber.h"

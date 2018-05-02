@@ -97,10 +97,12 @@ while raw_input('') != 'y':
     T2 = fiducial.transform.translation
     T1 = tf.transformations.translation_matrix([T1.x, T1.y, T1.z])
     T2 = tf.transformations.translation_matrix([T2.x, T2.y, T2.z])
+
     R1 = robot.transform.rotation
     R2 = fiducial.transform.rotation
     R1 = tf.transformations.quaternion_matrix([R1.x, R1.y, R1.z, R1.w])
     R2 = tf.transformations.quaternion_matrix([R2.x, R2.y, R2.z, R2.w])
+    
     T = T1.dot(R1).dot(T2).dot(R2)
 
     print T

@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-    <!-- <node name="bin_picking" pkg="bin_picking" type="objDetection" /> -->
     <arg name="path" default="/home/joana/catkin_ws/src/Bin-picking/bin_picking/bagfiles/" />
     <arg name="bag" default="kinectj6" />
     <!-- <node pkg="rosbag" type="play" name="player" output="screen" args="/home/joana/catkin_ws/src/Bin-picking/bagfiles/kinectj6.bag -l"/> -->
@@ -8,6 +7,8 @@
     <!-- start rviz -->
     <node pkg="rviz" type="rviz" name="my_rviz"/> 
     <include file="$(find openni_launch)/launch/openni.launch">
+        <!-- device_id -->
+        <arg name="device_id" default="A00366922636045A" />
         <!-- disable load_driver -->
         <arg name="load_driver" value="false" />
         <arg name="depth_registration" value="true" />
@@ -15,4 +16,11 @@
         <arg name="rgb_camera_info_url" value="package://bin_picking/calibration/kinect/rgb.yaml" />
         <arg name="depth_camera_info_url" value="package://bin_picking/calibration/kinect/depth.yaml" />
     </include>
+    
+    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find bin_picking)/urdf/binpicking.xacro'" />
+    <param name="use_gui" value="true"/>
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+    <!-- <node name="bin_picking_objDetection" pkg="bin_picking" type="objDetection" /> -->
+    <!-- <node name="bin_picking_pointTFtransfer" pkg="bin_picking" type="pointTFtransfer" />   -->
 </launch>

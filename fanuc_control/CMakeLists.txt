@@ -6,6 +6,8 @@ project(fanuc_control)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
     message_generation
+    pcl_conversions
+    pcl_ros
     roscpp
     std_msgs
     geometry_msgs

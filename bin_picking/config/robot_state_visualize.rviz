@@ -10,6 +10,7 @@ Panels:
         - /TF1
         - /TF1/Frames1
         - /PointCloud21
+        - /PointStamped1
       Splitter Ratio: 0.708933711
     Tree Height: 503
   - Class: rviz/Selection
@@ -251,12 +252,22 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.00999999978
+      Size (m): 0.00300000003
       Style: Flat Squares
       Topic: /camera/depth_registered/points
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Class: rviz/PointStamped
+      Color: 204; 41; 204
+      Enabled: true
+      History Length: 1
+      Name: PointStamped
+      Radius: 0.0199999996
+      Topic: /centroidPS_in_robot_base
+      Unreliable: false
       Value: true
   Enabled: true
   Global Options:
@@ -279,7 +290,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.089113
+      Distance: 0.803015053
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -294,10 +305,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.665397108
+      Pitch: -0.0496030115
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.01357651
+      Yaw: 4.9885745
     Saved: ~
 Window Geometry:
   Displays:

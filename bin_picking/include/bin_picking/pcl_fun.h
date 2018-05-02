@@ -97,7 +97,7 @@ void radiusoutlierremoval (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cl
   pcl::RadiusOutlierRemoval<pcl::PointXYZRGB> ror;
   ror.setInputCloud(cloud);
   ror.setRadiusSearch(0.02);				
-  ror.setMinNeighborsInRadius (15);			
+  ror.setMinNeighborsInRadius (20);			
   ror.filter (*cloud_ror_ptr);
 }
 

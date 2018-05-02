@@ -40,6 +40,11 @@ o888o o888o o888o `Y8bod8P'     `8'       "888" `Y8bod8P' `Y8bod8P'  888bod8P' `
 */
 void robotCom::movtocpos(string input)
 {
+    // Input must be like:
+    //     MOVTOCPOS<CR>x y z w p r Cfg1 Cfg2 Cfg3 Turn1 Turn2 Turn3 motionType motionSpeed operationMode<CR>
+            // x,y,z -- mm
+            // w,p,r -- degrees
+    //     EX: 100.00 200.00 300.00 10.00 20.00 30.00 0 1 1 0 0 0 1 100 0
     if(Global_debug_show_functions)
     {
         red_txt("*********************\n");

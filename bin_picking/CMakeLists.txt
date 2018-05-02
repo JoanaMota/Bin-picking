@@ -15,7 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
-  
+  geometry_msgs
+  tf2_geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -140,6 +141,8 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(objDetection src/objDetection.cpp)
 
+add_executable(pointTFtransfer src/pointTFtransfer.cpp)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -152,6 +155,9 @@ add_executable(objDetection src/objDetection.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(objDetection
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(pointTFtransfer
   ${catkin_LIBRARIES}
 )
 

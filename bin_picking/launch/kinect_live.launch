@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
 <launch>
-    <node name="bin_picking" pkg="bin_picking" type="objDetection" />
     <!-- start rviz -->
     <node pkg="rviz" type="rviz" name="my_rviz"/> 
     <include file="$(find openni_launch)/launch/openni.launch">
+        <!-- device_id -->
+        <arg name="device_id" default="A00366922636045A" />
         <!-- disable load_driver -->
         <arg name="depth_registration" value="true" />
         <!-- calibration -->
