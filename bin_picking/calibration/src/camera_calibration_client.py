@@ -69,21 +69,22 @@ translations = []
 while raw_input('') != 'y':
 
     # /world_effector
-    robot = tfBuffer.lookup_transform(
-        'robot_base_link',
-        'robot_link_4',
+    try:
+        robot = tfBuffer.lookup_transform(
+            'robot_base_link',
+            'robot_link_4',
+            rospy.Time())
+        fiducial = tfBuffer.lookup_transform(
+            'camera_link',
+            'calibration_object',
         rospy.Time())
-    world_effector_pub.publish(robot.transform)
+        world_effector_pub.publish(robot.transform)
+        camera_object_pub.publish(fiducial.transform)
+        print '<saved state>'
+    except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+        print("nao consegui ter as trans")
 
     # /camera_object
-    fiducial = tfBuffer.lookup_transform(
-        'camera_link',
-        'calibration_object',
-        rospy.Time())
-
-    camera_object_pub.publish(fiducial.transform)
-
-    print '<saved state>'
 
     print 'robot'
     print robot.transform
@@ -93,27 +94,27 @@ while raw_input('') != 'y':
     # print robot.transform
     # print fiducial.transform
 
-    T1 = robot.transform.translation
-    T2 = fiducial.transform.translation
-    T1 = tf.transformations.translation_matrix([T1.x, T1.y, T1.z])
-    T2 = tf.transformations.translation_matrix([T2.x, T2.y, T2.z])
+    # T1 = robot.transform.translation
+    # T2 = fiducial.transform.translation
+    # T1 = tf.transformations.translation_matrix([T1.x, T1.y, T1.z])
+    # T2 = tf.transformations.translation_matrix([T2.x, T2.y, T2.z])
 
-    R1 = robot.transform.rotation
-    R2 = fiducial.transform.rotation
-    R1 = tf.transformations.quaternion_matrix([R1.x, R1.y, R1.z, R1.w])
-    R2 = tf.transformations.quaternion_matrix([R2.x, R2.y, R2.z, R2.w])
+    # R1 = robot.transform.rotation
+    # R2 = fiducial.transform.rotation
+    # R1 = tf.transformations.quaternion_matrix([R1.x, R1.y, R1.z, R1.w])
+    # R2 = tf.transformations.quaternion_matrix([R2.x, R2.y, R2.z, R2.w])
     
-    T = T1.dot(R1).dot(T2).dot(R2)
+    # T = T1.dot(R1).dot(T2).dot(R2)
 
-    print T
+    # # print T
 
-    Rot = tf.transformations.quaternion_from_matrix(T)
-    Tr = tf.transformations.translation_from_matrix(T)
-    rotations.append(Rot)
-    translations.append(Tr)
+    # Rot = tf.transformations.quaternion_from_matrix(T)
+    # Tr = tf.transformations.translation_from_matrix(T)
+    # rotations.append(Rot)
+    # translations.append(Tr)
 
-    print 'xyz = ', Tr
-    print 'rpy = ', Rot
+    # print 'xyz = ', Tr
+    # print 'rpy = ', Rot
 
 print '======================'
 print 'Printing Final Results'

@@ -27,6 +27,11 @@ ros::Publisher pub_normal;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("Objetos"));		//Declarar a Visualização
 
+// Vectors to save all the center points and normals
+static vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> Center;
+static vector<pcl::PointCloud<pcl::Normal>::Ptr> Normal;
+
+static int counter;
 
 /**
 * @brief Callback function for processing the subscribed point cloud
@@ -58,13 +63,12 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
   // Separate the diffrent objs
   vector<pcl::PointIndices> ece_indices;
   euclideanclusterextraction (cloud_filtered, ece_indices);
-  
+
   // To save pcds on files
   pcl::PCDWriter writer;
-  // Vectors to save all the center points and normals
-  std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> Center;
-  std::vector<pcl::PointCloud<pcl::Normal>::Ptr> Normal;
-
+  Center.clear();
+  Normal.clear();
+  
   int objs = 0;
   for (std::vector<pcl::PointIndices>::const_iterator it = ece_indices.begin (); it != ece_indices.end (); ++it)
   {
@@ -83,6 +87,7 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
     centroidNormal(cloud_cluster,centroid_ptr,normal_centroid_ptr);
     //save the center point
     Center.push_back(centroid_ptr);
+    Center[0]->header.frame_id = "camera_rgb_optical_frame";
     //save the normal of the center point
     Normal.push_back(normal_centroid_ptr);
 
@@ -120,12 +125,10 @@ void cloud_cb (const PointCloud::ConstPtr& cloud_input)
   // cout << Center[0]->points[0].x*1000 << endl;
 	
   viewer->spinOnce();
-
+  counter++;
   // Publish the data
   pub.publish (cloud_filtered);
-  pub2.publish (cloud_rest_ptr);
-  pub_centroid.publish (Center[3]);
-  pub_normal.publish (Normal[3]);
+  // pub2.publish (cloud_rest_ptr);
 }
 
 
@@ -141,12 +144,32 @@ int main (int argc, char** argv)
   // Create a ROS subscriber for the input point cloud
   ros::Subscriber sub = nh.subscribe<PointCloud> ("/camera/depth_registered/points", 1, cloud_cb);
 
+
   // Create a ROS publisher for the output point cloud
   pub = nh.advertise<PointCloud> ("/output_kinect", 1);
-  pub2 = nh.advertise<PointCloud> ("/output_kinect_before_isolated_points", 1);
+  // pub2 = nh.advertise<PointCloud> ("/output_kinect_before_isolated_points", 1);
   pub_centroid = nh.advertise<PointCloud> ("/cloud_centroid", 1);
   pub_normal = nh.advertise<PointCloud> ("/cloud_centroid_normal", 1);
+  
+  // char keyInput;
+  while(nh.ok())
+  {  
+    // keyInput = getch();
+    
+    // if(keyInput == 's' || keyInput == 'S')
+    if(counter == 50)
+    {
+      break;
+    }
+    ros::spinOnce();
+  }
+  cout << "size Center: " << Center.size() << endl;
+  while (nh.ok())
+  {
+    pub_centroid.publish (Center[0]);
+    pub_normal.publish (Normal[0]);
+  }
 
   // Spin
-  ros::spin ();
+  // ros::spin ();
 }

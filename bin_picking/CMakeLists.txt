@@ -143,6 +143,7 @@ add_executable(objDetection src/objDetection.cpp)
 
 add_executable(pointTFtransfer src/pointTFtransfer.cpp)
 
+add_executable(sensorRS232 src/sensorRS232.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -158,6 +159,9 @@ target_link_libraries(objDetection
   ${catkin_LIBRARIES}
 )
 target_link_libraries(pointTFtransfer
+${catkin_LIBRARIES}
+)
+target_link_libraries(sensorRS232
   ${catkin_LIBRARIES}
 )
 

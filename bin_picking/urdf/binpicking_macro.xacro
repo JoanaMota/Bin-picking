@@ -12,15 +12,139 @@
         <xacro:bin_picking_manipulator prefix="${prefix}" />
         <xacro:kinect_camera name="camera" parent="${prefix}robot_link_4">
 
-             <!-- joana convert euler_from_quaternion 1-->
+             <!-- joana convert euler_from_quaternion 1 x para a frente melhor em y-->
             <!-- <origin
                 xyz="0.273824339688 0.11318137131 -0.0197138711695"
                 rpy="1.43637243915 1.55845880529 2.99165474735" /> -->
+            <!-- <origin
+                xyz="0.253824339688 0.11318137131 -0.0197138711695"
+                rpy="1.43637243915 1.55845880529 2.99165474735" /> -->
 
              <!-- joana convert euler_from_quaternion 2-->
-            <origin
+            <!-- <origin
                 xyz="0.287897942007 0.113658162424 -0.0172542425314"
-                rpy="1.30973391552 1.5275728369 2.88949861591" />
+                rpy="1.30973391552 1.5275728369 2.88949861591" /> -->
+
+             <!-- joana convert euler_from_quaternion 3-->
+            <!-- <origin
+                xyz="0.279609095669 0.116639748561 -0.0214942133212"
+                rpy="1.92575936385 1.54891520166 -2.79157664793" /> -->
+             
+             <!-- joana convert euler_from_quaternion 4-->
+            <!-- <origin
+                xyz="0.268440466484 0.122899970085 -0.0166416582814"
+                rpy="2.06885061027 1.55781252086 -2.64482979539" /> -->
+
+             <!-- joana convert euler_from_quaternion 5 noite x para tras-->
+            <!-- <origin
+                xyz="0.247839774882 0.11700204948 -0.0190325324095"
+                rpy="1.7398943203 1.54554241269 -2.98878736842" /> -->
+             
+             <!-- joana convert euler_from_quaternion 6 noite-->
+            <!-- <origin
+                xyz="0.230029470617 0.132857372442 -0.00630274821251"
+                rpy="2.73368395102 1.54572900105 -1.94362403975" /> -->
+
+             <!-- joana convert euler_from_quaternion 7 manha-->
+            <!-- <origin
+                xyz="0.276754546937 0.120140773748 -0.0143116801325"
+                rpy="2.1200457846 1.54862201713 -2.59894915819" /> -->
+
+             <!-- joana convert euler_from_quaternion 8 Miguel BOM x tarde-->
+            <!-- <origin
+                xyz="0.251399988337 0.121134021845 -0.0214740394396"
+                rpy="2.77817146391 1.54118595996 -1.97217228011" /> -->
+            
+             <!-- joana convert euler_from_quaternion 9 MAL tarde-->
+            <!-- <origin
+                xyz="0.290023777948 0.117765053501 -0.0224434855418"
+                rpy="1.76699764666 1.54179041055 -2.95878204774" /> -->
+            
+             <!-- joana convert euler_from_quaternion 10 tarde-->
+            <!-- <origin
+                xyz="0.243917673784 0.131550407348 -0.0194209143795"
+                rpy="2.53224846805 1.54202866651 -2.18035254058" /> -->
+
+             <!-- joana convert euler_from_quaternion 10 batota-->
+            <!-- <origin
+                xyz="0.251399988337 0.11318137131 -0.0194209143795"
+                rpy="2.53224846805 1.54202866651 -2.18035254058" /> -->
+
+             <!-- joana convert euler_from_quaternion 11 -->
+            <!-- <origin
+                xyz="0.279007993329 0.117180125822 -0.0180197530052"
+                rpy="1.85013384122 1.54604862537 -2.87502917486" /> -->
+
+             <!-- joana convert euler_from_quaternion 12 noite -->
+            <!-- <origin
+                xyz="0.2766913732440 0.117286498686 -0.0215517328186"
+                rpy="1.79512358539 1.5416251848 -2.91911484011" /> -->
+
+             <!-- joana convert euler_from_quaternion 12 noite batota-->
+            <!-- <origin
+                xyz="0.268440466484 0.11318137131 -0.0215517328186"
+                rpy="1.79512358539 1.5416251848 -2.91911484011" /> -->
+
+             <!-- joana convert euler_from_quaternion 13 noite -->
+            <!-- <origin
+                xyz="0.281486400201 0.116789579978 -0.0224725143874"
+                rpy="1.76283050436 1.54019722186 -2.95054985582" /> -->
+
+             <!-- joana convert euler_from_quaternion 14 tarde novo aruco
+              -->
+            <!-- <origin
+                xyz="0.280370462232 0.118270345592 -0.0206941993316"
+                rpy="1.8562358457 1.54143707136 -2.86492619894" /> -->
+
+             <!-- joana convert euler_from_quaternion 15 tarde novo aruco
+              -->
+            <!-- <origin
+                xyz="0.28051830155 0.115758504585 -0.0209927386866"
+                rpy="1.72006698037 1.54206660591 -3.01004459736" /> -->
+
+             <!-- joana convert euler_from_quaternion 16 tarde novo aruco
+              -->
+            <!-- <origin
+                xyz="0.281981481279 0.11258785627 -0.0175115497053"
+                rpy="1.61898424936 1.5365298456 -3.11537802718" /> -->
+
+             <!-- joana convert euler_from_quaternion 17 tarde novo aruco poucas frames
+              -->
+            <!-- <origin
+                xyz="0.227161205497 0.128223892751 -0.00633328587159"
+                rpy="2.27333984837 1.54142755852 -2.43197482131" /> -->
+
+             <!-- joana convert euler_from_quaternion 18 tarde novo aruco 37 frames
+              -->
+            <!-- <origin
+                xyz="0.278978061288 0.116770357766 -0.0210383040274"
+                rpy="1.77711753615 1.54389413149 -2.94693274648" /> -->
+
+             <!-- joana convert euler_from_quaternion 19 tarde novo aruco 20 frames
+              -->
+            <!-- <origin
+                xyz="0.245273053545 0.117932415176 -0.0189283710983"
+                rpy="1.85016499124 1.54239294719 -2.86964920284" /> -->
+
+             <!-- joana convert euler_from_quaternion 20 tarde novo aruco 30 frames
+              -->
+            <!-- <origin
+                xyz="0.277881243837 0.119542350176 -0.0206221311455"
+                rpy="1.96078880682 1.54318442414 -2.75917553374" /> -->
+
+             <!-- joana convert euler_from_quaternion 20 tarde novo aruco 30 frames
+              -->
+            <origin
+                xyz="0.279403937965 0.129221579884 -0.0219581389451"
+                rpy="2.22624342566 1.53976899344 -2.50437731141" />
+
+                
+
+
+                <!-- 
+                X entre 0.268440466484 e 0.251399988337
+                Y entre 0.117286498686 e 0.11318137131
+                 -->
 
         </xacro:kinect_camera>
     </xacro:macro>
