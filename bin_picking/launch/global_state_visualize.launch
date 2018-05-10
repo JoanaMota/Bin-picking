@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-    <include file="$(find bin_picking)/launch/kinect.launch" />
 
     <arg name="robot_ip" default="192.168.0.231" doc="IP of controller" />
     <arg name="J23_factor" default="1" doc="Compensation factor for joint 2-3 coupling (-1, 0 or 1)" />
@@ -19,5 +18,6 @@
     <include file="$(find bin_picking)/launch/load_bin_picking.launch" />
     
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find bin_picking)/config/robot_state_visualize.rviz" required="true" />
+    <include file="$(find bin_picking)/launch/kinect.launch" />
 
 </launch>

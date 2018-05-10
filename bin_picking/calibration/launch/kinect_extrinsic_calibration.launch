@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-    <!-- launch the kinetic -->
-    <include file="$(find bin_picking)/launch/kinect.launch"/>
     <!-- launch the aruco detection -->
     <include file="$(find aruco_detect)/launch/aruco_detect.launch" >
         <arg name="camera" value="camera/rgb" />
@@ -37,17 +35,7 @@
     <!-- launch the calibrator node -->
     <node pkg="visp_hand2eye_calibration" type="visp_hand2eye_calibration_calibrator" name="calibrator_node" />
     
+    <!-- launch the kinetic -->
+    <include file="$(find bin_picking)/launch/kinect.launch"/>
     
-    <!-- does not work!!! -->
-    <!-- <include file="$(find aruco_hand_eye)/launch/aruco_hand_eye.launch">
-        <arg name="markerid"   value="17" />
-        <arg name="markersize" value="0.093"/>
-        <arg name="publish_tf" value="true"/>
-
-        <arg name="marker_parent_frame" value="/eef_tool_tip"/>
-        <arg name="camera_parent_frame" value="/robot_base_link"/>
-
-        <arg name="camera" value="/camera/rgb"/>
-        <arg name="camera_frame" value="/camera_rgb_optical_frame"/>
-    </include> -->
 </launch>

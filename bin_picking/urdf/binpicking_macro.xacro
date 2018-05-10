@@ -134,12 +134,27 @@
 
              <!-- joana convert euler_from_quaternion 20 tarde novo aruco 30 frames
               -->
-            <origin
+            <!-- <origin
                 xyz="0.279403937965 0.129221579884 -0.0219581389451"
-                rpy="2.22624342566 1.53976899344 -2.50437731141" />
+                rpy="2.22624342566 1.53976899344 -2.50437731141" /> -->
 
-                
+             <!-- joana convert euler_from_quaternion 21 after intrisic calibration GOOD X NOT SO GOOD Y
+              -->
+            <!-- <origin
+                xyz="0.247998706401 0.125155606229 -0.0186859903171"
+                rpy="2.05453674488 1.54706375547 -2.66341374452" /> -->
 
+             <!-- joana convert euler_from_quaternion 22 after intrisic calibration GOOD X WORST Y
+              -->
+            <!-- <origin
+                xyz="0.245630132675 0.128734721091 -0.0186468780284"
+                rpy="2.18202977374 1.5453374847 -2.52414462864" /> -->
+
+             <!-- joana convert euler_from_quaternion 23 after intrisic calibration
+              -->
+            <origin
+                xyz="0.250037605295 0.121920055033 -0.0198234097631"
+                rpy="1.86250666619 1.54643427609 -2.85870201824" />
 
                 <!-- 
                 X entre 0.268440466484 e 0.251399988337

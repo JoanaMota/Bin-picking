@@ -143,7 +143,7 @@ print "w=",w
 
 quaternion = (x,y,z,w)
 
-#convertion from quaternions(xyzw) to euler angles(rpy) which is ROS is in the YZX format
+#convertion from quaternions(xyzw) to euler angles(rpy) which in ROS is in the YZX format
 euler = tf.transformations.euler_from_quaternion(quaternion)
 roll = euler[0]
 pitch = euler[1]

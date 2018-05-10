@@ -43,7 +43,7 @@ int main (int argc, char* argv[])
     ros::Publisher centroid_pub = node.advertise<geometry_msgs::Vector3>("/centroid_in_robot_base", 1);
     ros::Publisher normal_pub = node.advertise<geometry_msgs::Vector3>("/normal_in_robot_base", 1);
     ros::Publisher centroid_pointStamped = node.advertise<geometry_msgs::PointStamped>("/centroidPS_in_robot_base", 1);
-    ros::Publisher centroid_pointStamped_depth = node.advertise<geometry_msgs::PointStamped>("/centroidPS_in_robot_base_depth", 1);
+    // ros::Publisher centroid_pointStamped_depth = node.advertise<geometry_msgs::PointStamped>("/centroidPS_in_robot_base_depth", 1);
     tf2_ros::Buffer tfBuffer; 
     tf2_ros::TransformListener tfListener(tfBuffer);
 
@@ -91,64 +91,62 @@ int main (int argc, char* argv[])
             // cout << "point in DEPTH" << endl;
             // cout << centroid_transformed_depth_pt << endl;
 
-            transformStamped = tfBuffer.lookupTransform("robot_base_link", "camera_depth_optical_frame", ros::Time(0),ros::Duration(3.0));
-            geometry_msgs::PointStamped  centroid_transformed_depth_pt; 
-            centroid_transformed_depth_pt.header.frame_id = "/robot_base_link";
-            tf2::doTransform(centroid_initial_depth_pt, centroid_transformed_depth_pt, transformStamped);
+            // transformStamped = tfBuffer.lookupTransform("robot_base_link", "camera_depth_optical_frame", ros::Time(0),ros::Duration(3.0));
+            // geometry_msgs::PointStamped  centroid_transformed_depth_pt; 
+            // centroid_transformed_depth_pt.header.frame_id = "/robot_base_link";
+            // tf2::doTransform(centroid_initial_depth_pt, centroid_transformed_depth_pt, transformStamped);
 
             
-            cout << "point in ROBOT from DEPTH" << endl;
-            cout << centroid_transformed_depth_pt << endl;
+            // cout << "point in ROBOT from DEPTH" << endl;
+            // cout << centroid_transformed_depth_pt << endl;
 
-            centroid_pointStamped_depth.publish(centroid_transformed_depth_pt);
+            // centroid_pointStamped_depth.publish(centroid_transformed_depth_pt);
 
 
-            transformStamped_rgb = tfBuffer.lookupTransform("robot_base_link", "camera_rgb_optical_frame", ros::Time(0),ros::Duration(3.0));
-
-            geometry_msgs::PointStamped  centroid_transformed_pt; 
-            centroid_transformed_pt.header.frame_id = "/robot_base_link";
-
-            tf2::doTransform(centroid_initial_pt, centroid_transformed_pt, transformStamped_rgb);
-            
-            geometry_msgs::Vector3 centroid_robot_base;
-            centroid_robot_base.x = centroid_transformed_pt.point.x;
-            centroid_robot_base.y = centroid_transformed_pt.point.y;
-            centroid_robot_base.z = centroid_transformed_pt.point.z;
-
-            cout << "point in ROBOT from RGB" << endl;
-            cout << centroid_transformed_pt << endl;
-
-            
-
-//------------------------------------------------------------------------------------------------------------------------------------------------
-            // transformStamped = tfBuffer.lookupTransform("robot_base_link", "camera_rgb_optical_frame", ros::Time(0),ros::Duration(3.0));
-
-            // cout << "transformation" << transformStamped << endl; 
+            // transformStamped_rgb = tfBuffer.lookupTransform("robot_base_link", "camera_rgb_optical_frame", ros::Time(0),ros::Duration(3.0));
 
             // geometry_msgs::PointStamped  centroid_transformed_pt; 
             // centroid_transformed_pt.header.frame_id = "/robot_base_link";
-            // geometry_msgs::PointStamped  normal_transformed_pt; 
-            // normal_transformed_pt.header.frame_id = "/robot_base_link";
 
-            // tf2::doTransform(centroid_initial_pt, centroid_transformed_pt, transformStamped);
-            // tf2::doTransform(normal_initial_pt, normal_transformed_pt, transformStamped);
+            // tf2::doTransform(centroid_initial_pt, centroid_transformed_pt, transformStamped_rgb);
             
             // geometry_msgs::Vector3 centroid_robot_base;
             // centroid_robot_base.x = centroid_transformed_pt.point.x;
             // centroid_robot_base.y = centroid_transformed_pt.point.y;
             // centroid_robot_base.z = centroid_transformed_pt.point.z;
 
-            // cout << "centroid_robot_base_x: " << centroid_robot_base.x << endl; 
-            // cout << "centroid_robot_base_y: " << centroid_robot_base.y << endl; 
-            // cout << "centroid_robot_base_z: " << centroid_robot_base.z << endl; 
+            // cout << "point in ROBOT from RGB" << endl;
+            // cout << centroid_transformed_pt << endl;
+
             
-            // geometry_msgs::Vector3 normal_robot_base;
-            // normal_robot_base.x = normal_transformed_pt.point.x;
-            // normal_robot_base.y = normal_transformed_pt.point.y;
-            // normal_robot_base.z = normal_transformed_pt.point.z;
+
+//------------------------------------------------------------------------------------------------------------------------------------------------
+            transformStamped = tfBuffer.lookupTransform("robot_base_link", "camera_rgb_optical_frame", ros::Time(0),ros::Duration(3.0));
+
+            cout << "transformation" << transformStamped << endl; 
+
+            geometry_msgs::PointStamped  centroid_transformed_pt; 
+            centroid_transformed_pt.header.frame_id = "/robot_base_link";
+            geometry_msgs::PointStamped  normal_transformed_pt; 
+            normal_transformed_pt.header.frame_id = "/robot_base_link";
+
+            tf2::doTransform(centroid_initial_pt, centroid_transformed_pt, transformStamped);
+            tf2::doTransform(normal_initial_pt, normal_transformed_pt, transformStamped);
+            
+            geometry_msgs::Vector3 centroid_robot_base;
+            centroid_robot_base.x = centroid_transformed_pt.point.x;
+            centroid_robot_base.y = centroid_transformed_pt.point.y;
+            centroid_robot_base.z = centroid_transformed_pt.point.z;
+
+            cout << centroid_transformed_pt << endl;
+            
+            geometry_msgs::Vector3 normal_robot_base;
+            normal_robot_base.x = normal_transformed_pt.point.x;
+            normal_robot_base.y = normal_transformed_pt.point.y;
+            normal_robot_base.z = normal_transformed_pt.point.z;
 
             centroid_pub.publish(centroid_robot_base);
-            // normal_pub.publish(normal_robot_base);
+            normal_pub.publish(normal_robot_base);
             centroid_pointStamped.publish(centroid_transformed_pt);
         }
         catch (tf2::TransformException &ex) 

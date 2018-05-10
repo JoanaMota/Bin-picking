@@ -6,9 +6,9 @@
         <!-- enable depth registration -->
         <arg name="depth_registration" value="false" />
         <!-- calibration -->
-        <!-- <arg name="rgb_camera_info_url" value="package://bin_picking/calibration/kinect/rgb.yaml" />
-        <arg name="depth_camera_info_url" value="package://bin_picking/calibration/kinect/depth.yaml" /> -->
-        <arg name="rgb_camera_info_url" value="package://bin_picking/calibration/kinect/rgb_A00366922636045A.yaml" />
+        <!-- <arg name="rgb_camera_info_url" value="package://bin_picking/calibration/kinect/rgb.yaml" /> -->
         <!-- <arg name="depth_camera_info_url" value="package://bin_picking/calibration/kinect/depth.yaml" /> -->
+        <arg name="rgb_camera_info_url" value="package://bin_picking/calibration/kinect/rgb_A00366922636045A.yaml" />
+        <arg name="depth_camera_info_url" value="package://bin_picking/calibration/kinect/depth_A00366922636045A.yaml" />
     </include>
 </launch>
