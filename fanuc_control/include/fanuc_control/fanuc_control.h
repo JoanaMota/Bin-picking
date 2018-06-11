@@ -44,6 +44,7 @@ the future.
 #include <boost/asio/ip/tcp.hpp>            /** For TCP/IP communication                  **/
 #include <boost/algorithm/string.hpp>       /** More string functions (to rearrange)      **/
 #include <vector>                           /** Allows the use of vectors                 **/
+#include <math.h>                           /** Allows the use of PI                      **/
 
 // #include <imu_network/sensors_network.h>    /** Allows to subscribe to topic_raw_data     **/
 // #include <imu_network/filtered_imu_network.h> /** Allows to subscribe to topic_filtered   **/

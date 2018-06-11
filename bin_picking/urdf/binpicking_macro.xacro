@@ -138,27 +138,92 @@
                 xyz="0.279403937965 0.129221579884 -0.0219581389451"
                 rpy="2.22624342566 1.53976899344 -2.50437731141" /> -->
 
-             <!-- joana convert euler_from_quaternion 21 after intrisic calibration GOOD X NOT SO GOOD Y
+             <!-- joana convert euler_from_quaternion 21 after intrisic calibration BAD in X
               -->
             <!-- <origin
                 xyz="0.247998706401 0.125155606229 -0.0186859903171"
                 rpy="2.05453674488 1.54706375547 -2.66341374452" /> -->
 
-             <!-- joana convert euler_from_quaternion 22 after intrisic calibration GOOD X WORST Y
+             <!-- joana convert euler_from_quaternion 22 after intrisic calibration NOT BAD IN BOUTH x: 0.333202 y: 0.192976
               -->
             <!-- <origin
                 xyz="0.245630132675 0.128734721091 -0.0186468780284"
                 rpy="2.18202977374 1.5453374847 -2.52414462864" /> -->
 
-             <!-- joana convert euler_from_quaternion 23 after intrisic calibration
+             <!-- joana convert euler_from_quaternion 23 after intrisic calibration NOT BAD IN X
               -->
-            <origin
+            <!-- <origin
                 xyz="0.250037605295 0.121920055033 -0.0198234097631"
-                rpy="1.86250666619 1.54643427609 -2.85870201824" />
+                rpy="1.86250666619 1.54643427609 -2.85870201824" /> -->
+
+             <!-- joana convert euler_from_quaternion 24 after intrisic calibration BEST ONE SO FAR i Y x: 0.337196  y: 0.190538
+              -->
+            <!-- <origin
+                xyz="0.249315737631 0.122836898871 -0.0173595499696"
+                rpy="1.94636293657 1.54585698373 -2.77753500665" /> -->
+
+             <!-- joana convert euler_from_quaternion 25 after intrisic calibration BAD In X
+              -->
+            <!-- <origin
+                xyz="0.2464362228 0.123022494194 -0.0186746162559"
+                rpy="1.94060142493 1.55129148344 -2.77733685521" /> -->
+
+             <!-- joana convert euler_from_quaternion 26 after intrisic calibration x: 0.333624  y: 0.193778
+              -->
+            <!-- <origin
+                xyz="0.279827354527 0.12116330125 -0.0182204436316"
+                rpy="1.78482730575 1.55059462639 -2.93123755032" /> -->
+
+             <!-- joana convert euler_from_quaternion 27 after intrisic calibration x: 0.33612 y: 0.191305
+              -->
+            <!-- <origin
+                xyz="0.247888432512 0.123172523076 -0.0197941758473"
+                rpy="1.90546337967 1.55051949778 -2.80537480944" /> -->
+
+             <!-- joana convert euler_from_quaternion 28 after intrisic calibration x: 0.333241 y: 0.191324 BEST SO FAR
+              -->
+            <!-- <origin
+                xyz="0.244316235557 0.128274081521 -0.0171762659762"
+                rpy="2.20778889637 1.54928707453 -2.49841856116" /> -->
+
+             <!-- joana convert euler_from_quaternion 29 after intrisic calibration BAD x: 0.305953 y: 0.19183
+              -->
+            <!-- <origin
+                xyz="0.24973940062 0.122363137841 -0.0173974204673"
+                rpy="1.95908118839 1.54394351042 -2.77092726247" /> -->
+
+             <!-- joana convert euler_from_quaternion 30 after intrisic calibration SOOO BAD x: 0.366387 y: 0.195049
+              -->
+            <!-- <origin
+                xyz="0.27831321288 0.125011986708 -0.0184730486361"
+                rpy="2.0482106047 1.54868496736 -2.65998966417" /> -->
+
+             <!-- joana convert euler_from_quaternion 31 after intrisic calibration SOOO x: 0.337417  y: 0.190311
+              -->
+            <!-- <origin
+                xyz="0.248760043608 0.120732900165 -0.0200442441181"
+                rpy="1.8905007158 1.54731656982 -2.84068026775" /> -->
+
+                <!-- x: 0.333534  y: 0.190602 -->
+<!-- x: 0.332586 y: 0.190537 -->
+            <!-- <origin
+                xyz="0.245460043608 0.120032900165 -0.0200442441181"
+                rpy="1.8905007158 1.54731656982 -2.84068026775" /> -->
+
+             <!-- After Visions class X verry good x:0.330293 Y BAD y:0.199388    -->
+            <!-- <origin
+                xyz="0.247595042515 0.119885890773 -0.020976224609" 
+                rpy="-1.16471837775 1.56523311718 0.4010175495" /> -->
+
+             <!-- After Visions class X verry good x:0.330293 Y BAD y:0.199388    -->
+            <origin
+                xyz="0.247469111314 0.121665921033 -0.0209441353601" 
+                rpy="-1.73229551223 1.56538317963 -0.168783829812" />
+
 
                 <!-- 
-                X entre 0.268440466484 e 0.251399988337
-                Y entre 0.117286498686 e 0.11318137131
+                X pouco menor 0.247998706401
+                Y menor 0.121920055033
                  -->
 
         </xacro:kinect_camera>

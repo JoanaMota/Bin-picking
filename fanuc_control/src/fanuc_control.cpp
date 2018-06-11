@@ -6,7 +6,8 @@ using namespace std;
 
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 typedef pcl::PointCloud<pcl::Normal> PointCloudNormal;
-float X, Y, Z, normal_X, normal_Y, normal_Z;
+double X, Y, Z, Xapprox, Yapprox, Zapprox, yaw, pitch;
+long int counter;
 
 
 void centroid (const geometry_msgs::Vector3 centroid_robot_base)
@@ -20,16 +21,26 @@ void centroid (const geometry_msgs::Vector3 centroid_robot_base)
     cout << "Z: " << Z << endl;
 }
 
-void normal (const geometry_msgs::Vector3 normal_robot_base)
+void approx (const geometry_msgs::Vector3 approx_point_robot_base)
 {
-    normal_X = normal_robot_base.x;
-    normal_Y = normal_robot_base.y;
-    normal_Z = normal_robot_base.z;
+    Xapprox = approx_point_robot_base.x;
+    Yapprox = approx_point_robot_base.y;
+    Zapprox = approx_point_robot_base.z;
 
-    // cout << "W: " << normal_X << endl;
-    // cout << "P: " << normal_Y << endl;
-    // cout << "R: " << normal_Z << endl;
+    cout << "Xapprox: " << Xapprox << endl;
+    cout << "Yapprox: " << Yapprox << endl;
+    cout << "Zapprox: " << Zapprox << endl;
 }
+
+void euler (const geometry_msgs::Pose2D euler_angles)
+{
+    yaw = euler_angles.x;
+    pitch = euler_angles.y;
+
+    cout << "Yaw: " << yaw << endl;
+    cout << "Pitch: " << pitch << endl;
+}
+
 
 int main (int argc, char* argv[])
 {
@@ -45,19 +56,18 @@ int main (int argc, char* argv[])
     ros::init(argc , argv , "fanuc_control");
 
     ros::NodeHandle n;
-    // Subscribe centroid in relation to the base of the Robot published by the pointTFtransfer.cpp
+    // Subscribe centroid in relation to the base of the Robot published by the pointTFtransfer
     ros::Subscriber sub_centroid = n.subscribe<geometry_msgs::Vector3> ("/centroid_in_robot_base", 1, centroid);
-    // Subscribe normal in relation to the base of the Robot published by the pointTFtransfer.cpp
-    ros::Subscriber sub_normal = n.subscribe<geometry_msgs::Vector3> ("/normal_in_robot_base", 1, normal);
+    // Subscribe approximation point in relation to the base of the Robot published by the pointTFtransfer
+    ros::Subscriber sub_approxpoint = n.subscribe<geometry_msgs::Vector3> ("/approximation_point_in_robot_base", 1, approx);
+    // Subscribe euler angles
+    ros::Subscriber sub_euler = n.subscribe<geometry_msgs::Pose2D> ("/euler_angles", 1, euler);
     
-    ros::Publisher fanuc_cart  = n.advertise<std_msgs::String>("fanuc_cart", 1000);
+    
+    ros::Publisher fanuc_cart  = n.advertise<std_msgs::String>("fanuc_cart", 1000); 
     ros::Publisher fanuc_joint = n.advertise<std_msgs::String>("fanuc_joint", 1000);
-
-
+    
     ros::Rate loop_rate(20);
-
-    // dataReceiver data;
-
     try
     {
 
@@ -70,50 +80,25 @@ int main (int argc, char* argv[])
         // Communication Initiation //
         // robotCom c(io_service, iterator); // Necessary in included file!!
 
-        char tppname[1024] = "PARIJOANA";
+        // char tppname[1024] = "PARIJOANA";
 
         robotCom c(io_service, iterator);
-        // c.runtpp(tppname);
-        
-        //MOVE TO JOINTS - Inicial position 
-        // c.movtojpos("-0.000 0.000 -0.000 0.000 -90.000 -0.000 1 40 1");
         
         //MOVE TO POINT -- for Kinect to acquire point cloud
         // c.movtocpos("420.000 0.000 280.000 -179.996 0.013 -1.003 0 1 1 0 0 0 1 50 1");
         stringstream ss_input_arg;
 
-        //ATENCAO CONVERTER PARA A PONTA DO ROBOT
         // ss_input_arg << X << Y << Z << "-179.996 0.013 -0.003 0 1 1 0 0 0 1 10 1";
         // string input_arg = ss_input_arg.str();
         // c.movtocpos(input_arg);
         //130.188-162.5
 
-        //MENOS 23 NO EIXO DO X
-
-        //Obj 1-- azul direita 2
-        // c.movtocpos("424.652 188.668 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        // c.movtocpos("401.652 188.668 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        //Obj 2
-        // c.movtocpos("535.592 188.57 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        // c.movtocpos("512.592 188.57 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        //Obj 3
-        // c.movtocpos("424.632 -3.93306 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        // c.movtocpos("401.632 -3.93306 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        //Obj 4
-        // c.movtocpos("313.645 196.748 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        //Obj 5
-        // c.movtocpos("626.401 180.54 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        //Obj 6
-        // c.movtocpos("320.416 -4.74655 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        //Obj 7
-        // c.movtocpos("528.921 -18.2747 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        //Obj 8
-        // c.movtocpos("627.086 -13.5831 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        
-        // c.getcrcpos();
-        // c.movtocpos("356.061 191.63 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        // c.movtocpos("356.994 194.354 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
-        c.movtocpos("361.323 187.639 -136 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
+        // c.movtocpos("330 190 -147 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
+        // Z = 44.8388 - 162 
+        // c.movtocpos("426.163 80.7843 -19 -8.66128 -20.7937 0 0 1 1 0 0 0 1 40 1");
+        // c.movtocpos("426.163 80.7843 -19 −188,66128 -20.7937 0 0 1 1 0 0 0 1 40 1");
+        // c.movtocpos("427.852 39.319 -92.222 -160.701 9.95439 0 0 1 1 0 0 0 1 40 1");
+        // 427.852, 39.319, -92.222, -165.276, 11.345, -20.743, 0, 1, 1, 0, 0, 0
 
 
 

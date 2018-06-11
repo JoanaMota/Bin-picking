@@ -44,3 +44,18 @@
 #include <tf/transform_listener.h>
 #include "geometry_msgs/PointStamped.h"
 #include "message_filters/subscriber.h"
+
+// for visualization
+#include <boost/thread/thread.hpp>
+#include <pcl/common/common_headers.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/console/parse.h>
+#include <pcl/visualization/point_cloud_color_handlers.h>
+
+#include <cmath>        // std::abs
+#include <math.h>       // std::fabs
+
+#include <geometry_msgs/Pose2D.h>
+#include <Eigen/Dense>

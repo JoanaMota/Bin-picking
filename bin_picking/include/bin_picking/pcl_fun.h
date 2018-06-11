@@ -4,7 +4,7 @@ typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 
 /**
 * @brief The PassThrough filter is used to identify and/or eliminate points 
-within a specific range of X, Y and Z values.
+within a specific range of X, Y and Z values. In this case in the Z direction
 * @param cloud - input cloud
 * @param cloud_pt_ptr - cloud after the application of the filter
 * @return void
@@ -21,7 +21,7 @@ void passthroughZ (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cloud_pt_p
 
 /**
 * @brief The PassThrough filter is used to identify and/or eliminate points 
-within a specific range of X, Y and Z values.
+within a specific range of X, Y and Z values. In this case in the X direction
 * @param cloud - input cloud
 * @param cloud_pt_ptr - cloud after the application of the filter
 * @return void
@@ -43,12 +43,12 @@ void passthroughX (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cloud_pt_p
 * @param cloud_vg_ptr - cloud after the application of the filter
 * @return void
 */
-void voxelgrid (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cloud_vg_ptr)
+void voxelgrid (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cloud_vg_ptr, float gridside)
 {
   // Perform the actual filtering
   pcl::VoxelGrid<pcl::PointXYZRGB> vg;
   vg.setInputCloud (cloud);
-  vg.setLeafSize (0.003f, 0.003f, 0.003f); // 5mm
+  vg.setLeafSize (gridside, gridside, gridside); // 3mm float variable
   vg.filter (*cloud_vg_ptr);
 }
 
@@ -67,7 +67,7 @@ void sacsegmentation_extindices (const PointCloud::ConstPtr& cloud, PointCloud::
   sacs.setModelType (pcl::SACMODEL_PLANE);
   sacs.setMethodType (pcl::SAC_RANSAC);
   sacs.setMaxIterations (1000);
-  sacs.setDistanceThreshold (0.015);
+  sacs.setDistanceThreshold (0.0155);
   sacs.setInputCloud (cloud);
   pcl::PointIndices::Ptr sacs_inliers (new pcl::PointIndices);
   pcl::ModelCoefficients::Ptr sacs_coefficients (new pcl::ModelCoefficients);
@@ -108,7 +108,7 @@ void radiusoutlierremoval (const PointCloud::ConstPtr& cloud, PointCloud::Ptr cl
 * @param normal_centroid_ptr - normal line 
 * @return void
 */
-void centroidNormal (const PointCloud::ConstPtr& cloud, PointCloud::Ptr centroid_ptr, pcl::PointCloud<pcl::Normal>::Ptr normal_centroid_ptr)
+void centroidNormal (const PointCloud::ConstPtr& cloud, PointCloud::Ptr centroid_ptr, pcl::PointCloud<pcl::Normal>::Ptr normal_centroid_ptr, PointCloud::Ptr centroid_ptr_real)
 {
   pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> ne;
 	
@@ -119,8 +119,8 @@ void centroidNormal (const PointCloud::ConstPtr& cloud, PointCloud::Ptr centroid
   pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB> ());
   ne.setSearchMethod (tree);
   // ne.setKSearch (50);
-  // Use all neighbors in a sphere of radius 3cm
-  ne.setRadiusSearch (0.03);
+  // Use all neighbors in a sphere of radius 35mm
+  ne.setRadiusSearch (0.05);
   pcl::PointCloud<pcl::Normal>::Ptr cloud_surface_normals_ptr (new pcl::PointCloud<pcl::Normal>);
   ne.compute (*cloud_surface_normals_ptr);
 
@@ -129,15 +129,15 @@ void centroidNormal (const PointCloud::ConstPtr& cloud, PointCloud::Ptr centroid
   pcl::compute3DCentroid (*cloud, centroid);
 
 	//  Index of the center point
-	double distance, distance_before=100;
-	int indice_centro=0;
-	for (int it_centro=0; it_centro<cloud->points.size (); it_centro++)
+	double distance, distance_before=1000;
+	int index_center=0;
+	for (int it_center=0; it_center<cloud->points.size (); it_center++)
 	{
-	  distance=abs(cloud->points[it_centro].x-centroid[0])+abs(cloud->points[it_centro].y-centroid[1])+abs(cloud->points[it_centro].z-centroid[2]);    
-	  if(distance<distance_before)
+	  distance = fabs(cloud->points[it_center].x-centroid[0])   +    fabs(cloud->points[it_center].y-centroid[1])   +    fabs(cloud->points[it_center].z-centroid[2]); 
+	  if(distance < distance_before)
 	  {
 	    distance_before=distance;
-	    indice_centro=it_centro;
+	    index_center=it_center;
 	  }
 	} 
 	
@@ -151,8 +151,18 @@ void centroidNormal (const PointCloud::ConstPtr& cloud, PointCloud::Ptr centroid
   centroid_ptr->points[0].y=centroid[1];
   centroid_ptr->points[0].z=centroid[2];
 
+	// The Real center point
+  centroid_ptr_real->points.push_back (cloud->points[1]);
+  centroid_ptr_real->width = centroid_ptr_real->points.size ();
+  centroid_ptr_real->height = 1;
+  centroid_ptr_real->is_dense = true;
+
+  centroid_ptr_real->points[0].x=cloud->points[index_center].x;
+  centroid_ptr_real->points[0].y=cloud->points[index_center].y;
+  centroid_ptr_real->points[0].z=cloud->points[index_center].z;
+
 	// Normal of the centroid
-	normal_centroid_ptr->points.push_back (cloud_surface_normals_ptr->points[indice_centro]);
+	normal_centroid_ptr->points.push_back (cloud_surface_normals_ptr->points[index_center]);
 
 }
 
@@ -164,17 +174,18 @@ void centroidNormal (const PointCloud::ConstPtr& cloud, PointCloud::Ptr centroid
 */
 void euclideanclusterextraction (const PointCloud::ConstPtr& cloud, std::vector<pcl::PointIndices>& ece_indices)
 {
-    pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ece;
-    ece.setClusterTolerance (0.007); //7mm
-    // setClusterTolerance()---If you take a very small value, it can happen that an actual object can be seen as multiple clusters. 
-    // On the other hand, if you set the value too high, it could happen, that multiple objects are seen as one cluster.
-    ece.setMinClusterSize (15);
-    ece.setMaxClusterSize (30000);
-    
     // Creating the KdTree object for the search method of the extraction
     pcl::search::KdTree<pcl::PointXYZRGB>::Ptr ece_tree_ptr (new pcl::search::KdTree<pcl::PointXYZRGB>);
     ece_tree_ptr->setInputCloud (cloud);    
 
+    pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ece;
+    ece.setClusterTolerance (0.035); //20mm
+    // setClusterTolerance()---If you take a very small value, it can happen that an actual object can be seen as multiple clusters. 
+    // On the other hand, if you set the value too high, it could happen, that multiple objects are seen as one cluster.
+    ece.setMinClusterSize (100);
+    ece.setMaxClusterSize (2500);
+    // ece.setMinClusterSize (15);
+    // ece.setMaxClusterSize (30000);
     ece.setSearchMethod (ece_tree_ptr);
     ece.setInputCloud (cloud);
     ece.extract (ece_indices);
