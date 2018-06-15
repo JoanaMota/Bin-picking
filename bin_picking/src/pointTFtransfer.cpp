@@ -41,8 +41,8 @@ int main (int argc, char* argv[])
     ros::spinOnce();
 
     //-------PUBLISH:
-    //-Centroid in global frame(robot_base_link)
-    ros::Publisher centroid_pub = node.advertise<geometry_msgs::Vector3>("/centroid_in_robot_base", 1);
+    // //-Centroid in global frame(robot_base_link)
+    // ros::Publisher centroid_pub = node.advertise<geometry_msgs::Vector3>("/centroid_in_robot_base", 1);
     //-Normal in global frame(robot_base_link)
     ros::Publisher normal_pub = node.advertise<geometry_msgs::Vector3>("/normal_in_robot_base", 1);
     //-Approximation Point in global frame(robot_base_link)
@@ -92,9 +92,9 @@ int main (int argc, char* argv[])
 
         // Calculate approximation point with normal and centroid
         geometry_msgs::PointStamped approx_point_initial_pt;
-        approx_point_initial_pt.point.x = centroid_initial_pt.point.x + 0.10 * normal_initial_pt.point.x;
-        approx_point_initial_pt.point.y = centroid_initial_pt.point.y + 0.10 * normal_initial_pt.point.y;
-        approx_point_initial_pt.point.z = centroid_initial_pt.point.z + 0.10 * normal_initial_pt.point.z;
+        approx_point_initial_pt.point.x = centroid_initial_pt.point.x + 0.15 * normal_initial_pt.point.x;
+        approx_point_initial_pt.point.y = centroid_initial_pt.point.y + 0.15 * normal_initial_pt.point.y;
+        approx_point_initial_pt.point.z = centroid_initial_pt.point.z + 0.15 * normal_initial_pt.point.z;
 
 
         geometry_msgs::TransformStamped transformStamped;
@@ -267,7 +267,7 @@ int main (int argc, char* argv[])
             eef_position_laser_reading_pt.header.frame_id = "/robot_base_link";
 
             //Publish Data:
-            centroid_pub.publish(centroid_robot_base);
+            // centroid_pub.publish(centroid_robot_base);
             normal_pub.publish(normal_robot_base_unit);
             approx_point_pub.publish(approx_point_robot_base);
             euler_angles_pub.publish(euler_angles);

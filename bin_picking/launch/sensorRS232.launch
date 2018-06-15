@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+
+    <node name="sensorRS232" pkg="bin_picking" type="sensorRS232" />
+    
+</launch>

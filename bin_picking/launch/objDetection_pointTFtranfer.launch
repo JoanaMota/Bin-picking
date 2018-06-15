@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+    <node name="objDetection" pkg="bin_picking" type="objDetection" />
+    <node name="pointTFtransfer" pkg="bin_picking" type="pointTFtransfer" />
+    
+</launch>
