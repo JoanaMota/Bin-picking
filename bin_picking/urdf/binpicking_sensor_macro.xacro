@@ -4,7 +4,16 @@
 
     <xacro:macro name="bin_picking_sensor" params="prefix">
 
-        <link name="${prefix}base_link">
+
+        <link name="${prefix}base_link" />
+
+        <joint name="${prefix}base_link-${prefix}optical_frame" type="fixed">
+            <origin xyz="0.0478 0.0166 -0.0636" rpy="0 0 0" />
+            <parent link="${prefix}base_link" />
+            <child link="${prefix}optical_frame" />
+        </joint>
+
+        <link name="${prefix}optical_frame">
             <visual>
                 <origin rpy="0 ${-pi/2} ${-pi}" xyz="-0.01215 0.0135 -0.0541" />
                 <geometry>
@@ -20,13 +29,5 @@
                 </geometry>
             </collision>
         </link>
-
-        <link name="${prefix}optical_frame" />
-
-        <joint name="${prefix}base_link-${prefix}optical_frame" type="fixed">
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <parent link="${prefix}base_link" />
-            <child link="${prefix}optical_frame" />
-        </joint>
     </xacro:macro>
 </robot>

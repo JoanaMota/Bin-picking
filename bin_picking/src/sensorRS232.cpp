@@ -37,10 +37,10 @@ int main (int argc, char** argv)
     int  fd;
     
     fd=OpenPort("/dev/ttyACM0", NULL);
-    if(fd == -1) 
+    while (ros::ok() & fd == -1) 
     {
         cout << "Error. Could not open port" << endl ; 
-        exit(1); 
+        // exit(1); 
     }
 
     while (ros::ok())

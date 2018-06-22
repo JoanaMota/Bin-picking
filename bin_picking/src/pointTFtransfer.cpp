@@ -1,5 +1,7 @@
 #include "../../bin_picking/include/bin_picking/header_pcl.h"
 
+#include "bin_picking/TargetsPose.h"
+
 using namespace std;
 
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
@@ -44,13 +46,14 @@ int main (int argc, char* argv[])
     // //-Centroid in global frame(robot_base_link)
     // ros::Publisher centroid_pub = node.advertise<geometry_msgs::Vector3>("/centroid_in_robot_base", 1);
     //-Normal in global frame(robot_base_link)
-    ros::Publisher normal_pub = node.advertise<geometry_msgs::Vector3>("/normal_in_robot_base", 1);
-    //-Approximation Point in global frame(robot_base_link)
-    ros::Publisher approx_point_pub = node.advertise<geometry_msgs::Vector3>("/approximation_point_in_robot_base", 1);
-    //-End-effector position for laser reading in global frame(robot_base_link)
-    ros::Publisher eef_position_laser_reading_pub = node.advertise<geometry_msgs::Vector3>("/eef_position_laser_reading_in_robot_base", 1);
-    //Euler angles
-    ros::Publisher euler_angles_pub = node.advertise<geometry_msgs::Pose2D>("/euler_angles", 1);
+    // ros::Publisher normal_pub = node.advertise<geometry_msgs::Vector3>("/normal_in_robot_base", 1);
+    // //-Approximation Point in global frame(robot_base_link)
+    // ros::Publisher approx_point_pub = node.advertise<geometry_msgs::Vector3>("/approximation_point_in_robot_base", 1);
+    // //-End-effector position for laser reading in global frame(robot_base_link)
+    // ros::Publisher eef_position_laser_reading_pub = node.advertise<geometry_msgs::Vector3>("/eef_position_laser_reading_in_robot_base", 1);
+    // //Euler angles
+    // ros::Publisher euler_angles_pub = node.advertise<geometry_msgs::Pose2D>("/euler_angles", 1);
+    ros::Publisher targets_pose_pub = node.advertise<bin_picking::TargetsPose>("/targets_pose", 1);
 
     //For visualization
     // Centroid for visualization
@@ -128,7 +131,7 @@ int main (int argc, char* argv[])
             approx_point_robot_base.y = approx_point_transformed_pt.point.y;
             approx_point_robot_base.z = approx_point_transformed_pt.point.z;
 
-            cout << "Approximation Point : " << approx_point_transformed_pt << endl; 
+            // cout << "Approximation Point : " << approx_point_transformed_pt << endl; 
 
             // Calculate the normal (in relation to the robot_base_link) between the the Centroid and the approx Point:
             // This is already an unit vector
@@ -147,7 +150,7 @@ int main (int argc, char* argv[])
             normal_robot_base_unit.y = normal_robot_base.y / length;
             normal_robot_base_unit.z = normal_robot_base.z / length;
 
-            cout << "normal in robot_base: " << normal_robot_base_unit << endl; 
+            // cout << "normal in robot_base: " << normal_robot_base_unit << endl; 
 
             // EULER ANGLES        
 
@@ -201,6 +204,8 @@ int main (int argc, char* argv[])
 
             // APPROXIMATION POINT FOR LASER
             transformStamped_laser = tfBuffer.lookupTransform("ls_optical_frame", "eef_tool_tip", ros::Time(0),ros::Duration(3.0));
+            // cout << "Transformation from tool tip to laser" << transformStamped_laser << endl;
+
             Eigen::Matrix4f T_eef_ls(4,4);
             Eigen::Quaterniond qua;
             qua.x() = transformStamped_laser.transform.rotation.x;
@@ -226,7 +231,7 @@ int main (int argc, char* argv[])
             T_eef_ls(3,2) = 0;
             T_eef_ls(3,3) = 1;
 
-            cout << "Transformation from enf-effector to laser: \n" << T_eef_ls << endl; 
+            // cout << "Transformation from enf-effector to laser: \n" << T_eef_ls << endl; 
             
             Eigen::Matrix4f T_robot_point(4,4);
             T_robot_point(0,0) = cos(pitch);
@@ -246,19 +251,19 @@ int main (int argc, char* argv[])
             T_robot_point(3,2) = 0;
             T_robot_point(3,3) = 1;
 
-            cout << "Transformation from robot base to approximation point: \n" << T_robot_point << endl; 
+            // cout << "Transformation from robot base to approximation point: \n" << T_robot_point << endl; 
 
             Eigen::Matrix4f T_robot_eef(4,4);
             T_robot_eef = T_eef_ls.inverse() * T_robot_point;
 
-            cout << "Transformation from robot base to End-effector: \n" << T_robot_eef << endl;
+            // cout << "Transformation from robot base to End-effector: \n" << T_robot_eef << endl;
 
             geometry_msgs::Vector3 eef_position_laser_reading;
             eef_position_laser_reading.x = T_robot_eef(0,3);
             eef_position_laser_reading.y = T_robot_eef(1,3);
             eef_position_laser_reading.z = T_robot_eef(2,3);
 
-            cout << "End-effector position for laser reading: \n " << eef_position_laser_reading << endl;
+            // cout << "End-effector position for laser reading: \n " << eef_position_laser_reading << endl;
 
             geometry_msgs::PointStamped eef_position_laser_reading_pt;
             eef_position_laser_reading_pt.point.x = eef_position_laser_reading.x;
@@ -268,10 +273,20 @@ int main (int argc, char* argv[])
 
             //Publish Data:
             // centroid_pub.publish(centroid_robot_base);
-            normal_pub.publish(normal_robot_base_unit);
-            approx_point_pub.publish(approx_point_robot_base);
-            euler_angles_pub.publish(euler_angles);
-            eef_position_laser_reading_pub.publish(eef_position_laser_reading);
+            // normal_pub.publish(normal_robot_base_unit);
+            // approx_point_pub.publish(approx_point_robot_base);
+            // euler_angles_pub.publish(euler_angles);
+            // eef_position_laser_reading_pub.publish(eef_position_laser_reading);
+
+            bin_picking::TargetsPose targets_pose;
+            targets_pose.header.stamp = ros::Time::now();
+            targets_pose.header.frame_id = "/robot_base_link";
+            targets_pose.normal = normal_robot_base_unit;
+            targets_pose.approx_point = approx_point_robot_base;
+            targets_pose.eef_position = eef_position_laser_reading;
+            targets_pose.euler_angles = euler_angles;
+
+            targets_pose_pub.publish(targets_pose);
 
             // For visualization
             centroid_pointStamped.publish(centroid_transformed_pt);

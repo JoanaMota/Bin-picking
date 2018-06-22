@@ -1,0 +1,5 @@
+std_msgs/Header header
+geometry_msgs/Vector3 normal
+geometry_msgs/Vector3 approx_point
+geometry_msgs/Vector3 eef_position
+geometry_msgs/Pose2D euler_angles

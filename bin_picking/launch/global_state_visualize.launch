@@ -7,6 +7,7 @@
 
     <rosparam command="load" file="$(find bin_picking)/config/joint_names.yaml" />
 
+    <!-- robot_state : publishes current joint positions and robot state data -->
     <include file="$(find fanuc_driver)/launch/robot_state.launch">
         <arg name="robot_ip" value="$(arg robot_ip)" />
         <arg name="J23_factor" value="$(arg J23_factor)" />
@@ -16,8 +17,11 @@
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
     
     <include file="$(find bin_picking)/launch/load_bin_picking.launch" />
-    
+
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find bin_picking)/config/robot_state_visualize.rviz" required="true" />
+    
+    <!-- Kinect Drivers -->
     <include file="$(find bin_picking)/launch/kinect.launch" />
+
 
 </launch>

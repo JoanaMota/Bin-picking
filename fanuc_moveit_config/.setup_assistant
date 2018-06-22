@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: bin_picking
+    relative_path: urdf/binpicking.xacro
+  SRDF:
+    relative_path: config/bin_picking.srdf
+  CONFIG:
+    author_name: Joana Mota
+    author_email: joanacarvalhomota@ua.pt
+    generated_timestamp: 1529619285
