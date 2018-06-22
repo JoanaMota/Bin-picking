@@ -40,10 +40,10 @@
     <arg name="publish_monitored_planning_scene" value="true" />
   </include>
 
-  <!-- <include file="$(find fanuc_moveit_config)/launch/moveit_rviz.launch">
+  <include file="$(find fanuc_moveit_config)/launch/moveit_rviz.launch">
     <arg name="config" value="true"/>
   </include>
   
-  <include file="$(find fanuc_moveit_config)/launch/default_warehouse_db.launch" /> -->
+  <!-- <include file="$(find fanuc_moveit_config)/launch/default_warehouse_db.launch" /> -->
 
 </launch>
