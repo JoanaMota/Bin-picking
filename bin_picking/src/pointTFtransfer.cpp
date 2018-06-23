@@ -191,7 +191,7 @@ int main (int argc, char* argv[])
             // cout << "pitch_final: " << pitch_final << endl;    
 
             float roll, pitch, yaw;
-            roll = 0;  
+            roll = 180;  
             pitch = pitch6;
             yaw = yaw6;
 
@@ -234,12 +234,12 @@ int main (int argc, char* argv[])
             // cout << "Transformation from enf-effector to laser: \n" << T_eef_ls << endl; 
             
             Eigen::Matrix4f T_robot_point(4,4);
-            T_robot_point(0,0) = cos(pitch);
-            T_robot_point(0,1) = sin(yaw)*sin(pitch);
-            T_robot_point(0,2) = cos(yaw)*sin(pitch);
+            T_robot_point(0,0) = -cos(pitch);
+            T_robot_point(0,1) = -sin(yaw)*sin(pitch);
+            T_robot_point(0,2) = -cos(yaw)*sin(pitch);
             T_robot_point(1,0) = 0;
-            T_robot_point(1,1) = cos(yaw);
-            T_robot_point(1,2) = -sin(yaw);
+            T_robot_point(1,1) = -cos(yaw);
+            T_robot_point(1,2) = sin(yaw);
             T_robot_point(2,0) = -sin(pitch);
             T_robot_point(2,1) = cos(pitch)*sin(yaw);
             T_robot_point(2,2) = cos(yaw)*cos(pitch);

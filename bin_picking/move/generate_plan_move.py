@@ -66,14 +66,16 @@ def generate_plan(group, final_point, number_of_points, q):
 
     return plan, fraction
 
-def move(plan, fraction, group):
+def move_robot(plan, fraction, group):
 
     if fraction == 1.0:
         print "planning was successful"
-        print "Press any key to MOVE!!"
+        print "============ IS PLAN OK??  "
+        print "If YES Press any key to MOVE!!"
         raw_input()
         # MOVEMENT
-        group.execute(plan)
+        group.execute(plan, wait=True)
+        # group.move(plan)
     else:
         print "planning was not successfull"
     print fraction

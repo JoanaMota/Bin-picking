@@ -18,6 +18,9 @@
       </include>
     </group>
 
+    <!-- Kinect Drivers -->
+    <!-- <include file="$(find bin_picking)/launch/kinect.launch" /> -->
+    
     <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find bin_picking)/config/robot_state_visualize.rviz" required="true" /> -->
     
     <!-- <include file="$(find bin_picking)/launch/robot_interface_streaming_bin_picking.launch" >

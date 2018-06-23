@@ -17,7 +17,7 @@ import roslaunch
 import math
 from bin_picking.msg import TargetsPose
 
-from generate_plan_move import generate_plan, move
+from generate_plan_move import generate_plan, move_robot
 
 # initialize moveit_commander and rospy
 print "============ Starting movement setup"
@@ -39,7 +39,12 @@ group = moveit_commander.MoveGroupCommander("manipulator")
 # DisplayTrajectory publisher which is used to publish trajectories for RVIZ to visualize.
 display_trajectory_publisher = rospy.Publisher(
                                     '/move_group/display_planned_path',
-                                    moveit_msgs.msg.DisplayTrajectory)
+                                    moveit_msgs.msg.DisplayTrajectory,
+                                    queue_size=20)
+rospy.sleep(1)
+
+group.set_planning_time(10)
+# rate = rospy.Rate(10) # 10hz
 
 # Publisher of pointStamped of the grasping point
 grasping_point_pub = rospy.Publisher(
@@ -59,63 +64,73 @@ print "============ Robot Groups: %s" %robot.get_group_names()
 # print robot.get_current_state()
 # print "============"
 
-normal = Vector3()
-approx_point = Vector3()
-eef_position_laser = Vector3()
-roll = 0.0
-pitch = Float32()
-yaw = Float32()
-laser_reading = Float32()
-# pitch = 0.0
-# yaw = 0.0
+# normal = Vector3()
+# approx_point = Vector3()
+# eef_position_laser = Vector3()
+# # roll = 0.0
+roll = np.pi
+# pitch = Float32()
+# yaw = Float32()
+# laser_reading = Float32()
+# # pitch = 0.0
+# # yaw = 0.0
 
-def callback_targets_pose(targets_pose):
+# def callback_targets_pose(targets_pose):
 
-    normal.x = targets_pose.normal.x
-    normal.y = targets_pose.normal.y
-    normal.z = targets_pose.normal.z
+#     normal.x = targets_pose.normal.x
+#     normal.y = targets_pose.normal.y
+#     normal.z = targets_pose.normal.z
 
-    approx_point.x = targets_pose.approx_point.x
-    approx_point.y = targets_pose.approx_point.y
-    approx_point.z = targets_pose.approx_point.z
+#     approx_point.x = targets_pose.approx_point.x
+#     approx_point.y = targets_pose.approx_point.y
+#     approx_point.z = targets_pose.approx_point.z
 
-    eef_position_laser.x = targets_pose.eef_position.x
-    eef_position_laser.y = targets_pose.eef_position.y
-    eef_position_laser.z = targets_pose.eef_position.z
+#     eef_position_laser.x = targets_pose.eef_position.x
+#     eef_position_laser.y = targets_pose.eef_position.y
+#     eef_position_laser.z = targets_pose.eef_position.z
 
-    # roll = 0.0
-    # pitch = targets_pose.euler_angles.y
-    # yaw = targets_pose.euler_angles.x
-    pitch.data = targets_pose.euler_angles.y
-    yaw.data = targets_pose.euler_angles.x
+#     # roll = 0.0
+#     # pitch = targets_pose.euler_angles.y
+#     # yaw = targets_pose.euler_angles.x
+#     pitch.data = targets_pose.euler_angles.y
+#     yaw.data = targets_pose.euler_angles.x
 
-def callback_laser_sensor(output_laser_reading):
-    laser_reading = output_laser_reading
+# def callback_laser_sensor(output_laser_reading):
+#     laser_reading.data = output_laser_reading
 
-rospy.Subscriber("/targets_pose", TargetsPose, callback_targets_pose)
-rospy.Subscriber("/output_laser_sensor", Float32, callback_laser_sensor)
+# rospy.Subscriber("/targets_pose", TargetsPose, callback_targets_pose)
+# rospy.Subscriber("/output_laser_sensor", Float32, callback_laser_sensor)
 
-# print "============ Generating plan 1 = 1st POSITION - Visualize Workspace  ============"
-# group.set_planning_time(10)
+print "============ Generating plan 1 = 1st POSITION - Visualize Workspace  ============"
+# group.set_planning_time(10.0)
+# group.setPlannerID("RRTConnectkConfigDefault")
 
-# visualization_point = Vector3()
-# visualization_point.x = 0.440
-# visualization_point.y = 0.0
-# visualization_point.z = 0.280 
+visualization_point = Vector3()
+visualization_point.x = 0.440
+visualization_point.y = 0.0
+visualization_point.z = 0.440 
 
-# # Quaternions of the Euler angles
-# quaternion_init = quaternion_from_euler(-np.pi, 0, 0)
-# print "The quaternion representation is %s %s %s %s." % (quaternion_init[0], quaternion_init[1], quaternion_init[2], quaternion_init[3])
+# Quaternions of the Euler angles
+quaternion_init = quaternion_from_euler(-np.pi, 0, roll)
+print "The quaternion representation is %s %s %s %s." % (quaternion_init[0], quaternion_init[1], quaternion_init[2], quaternion_init[3])
 
-# # GENERATING PLAN
-# plan1, fraction1 = generate_plan(group, visualization_point, 5, quaternion_init)
+# GENERATING PLAN
+plan1, fraction1 = generate_plan(group, visualization_point, 5, quaternion_init)
 
-# # MOVING
-# move(plan1, fraction1, group)
+display_trajectory = moveit_msgs.msg.DisplayTrajectory()
+display_trajectory.trajectory_start = robot.get_current_state()
+display_trajectory.trajectory.append(plan1)
+# Publish
+display_trajectory_publisher.publish(display_trajectory)
 
-# print "============ MOVING plan 1 = 1st POSITION - Visualize Workspace  ============"
-# print "When the robot STOPS moving press any key to continue!"
-# raw_input()
+# MOVEMENT
+move_robot(plan1, fraction1, group)
+
+print "============ MOVING plan 1 = 1st POSITION - Visualize Workspace  ============"
+print "When the robot STOPS moving press any key to continue!"
+raw_input()
+
+exit()
 
 # Launch objDetection and pointTFtransfer nodes
 uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
@@ -156,14 +171,14 @@ launch_objDetect_pointTF.shutdown()
 print "============ Generating plan 2 = 2nd POSITION - Measure with laser sensor ============"   
 
 # Quaternions of the Euler angles
-quaternion = quaternion_from_euler(math.radians(roll), math.radians(pitch.data), math.radians(yaw.data))
+quaternion = quaternion_from_euler(math.radians(yaw), math.radians(pitch.data), math.radians(roll.data))
 print "The quaternion representation is %s %s %s %s." % (quaternion[0], quaternion[1], quaternion[2], quaternion[3])
 
 # GENERATING PLAN
 plan2, fraction2 = generate_plan(group, eef_position_laser, 5, quaternion)
 
 # MOVING
-# move(plan2, fraction2, group)
+# move_robot(plan2, fraction2, group)
 
 print "============ MOVING plan 2 = 2nd POSITION - Measure with laser sensor ============"
 print "When the robot STOPS moving press any key to continue!"
@@ -211,35 +226,35 @@ grasping_point_pub.publish(grasping_point_ps)
 
 raw_input()
 
-# # GENERATING PLAN
-# plan3, fraction3 = generate_plan(group, approx_point, 5, quaternion)
+# GENERATING PLAN
+plan3, fraction3 = generate_plan(group, approx_point, 5, quaternion)
 
-# # MOVING
-# move(plan3, fraction3, group)
-# print "============ MOVING plan 3 = 3rd POSITION - Approximation point ============"
-# print "When the robot STOPS moving press any key to continue!"
-# raw_input()
+# MOVING
+move_robot(plan3, fraction3, group)
+print "============ MOVING plan 3 = 3rd POSITION - Approximation point ============"
+print "When the robot STOPS moving press any key to continue!"
+raw_input()
 
-# print "============ Generating plan 4 = 4th POSITION - Grasping point  ============"    
-# # GENERATING PLAN
-# plan4, fraction4 = generate_plan(group, grasping_point, 5, quaternion)
+print "============ Generating plan 4 = 4th POSITION - Grasping point  ============"    
+# GENERATING PLAN
+plan4, fraction4 = generate_plan(group, grasping_point, 5, quaternion)
 
-# # MOVING
-# move(plan4, fraction4, group)
-# print "============ MOVING plan 4 = 4th POSITION - Grasping point ============"
-# print "When the robot STOPS moving press any key to continue!"
-# raw_input()
+# MOVING
+move_robot(plan4, fraction4, group)
+print "============ MOVING plan 4 = 4th POSITION - Grasping point ============"
+print "When the robot STOPS moving press any key to continue!"
+raw_input()
 
-# print "============ SUCTION ============"
-# # SUCTION
+print "============ SUCTION ============"
+# SUCTION
 
-# print "============ Generating plan 5 = 5th POSITION -Return to Approximation point  ============"    
-# # GENERATING PLAN 5
-# plan5, fraction5 = generate_plan(group, approx_point, 5, quaternion)
+print "============ Generating plan 5 = 5th POSITION -Return to Approximation point  ============"    
+# GENERATING PLAN 5
+plan5, fraction5 = generate_plan(group, approx_point, 5, quaternion)
 
-# # MOVING
-# move(plan5, fraction5, group)
+# MOVING
+move_robot(plan5, fraction5, group)
 
-# print "============ MOVING plan 5 = 5th POSITION -Return to Approximation point  ============"    
-# print "When the robot STOPS moving press any key to continue!"
-# raw_input()
+print "============ MOVING plan 5 = 5th POSITION -Return to Approximation point  ============"    
+print "When the robot STOPS moving press any key to continue!"
+raw_input()
