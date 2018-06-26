@@ -4,15 +4,14 @@ import sys
 import copy
 import rospy
 import moveit_commander
-import moveit_msgs.msg
-# import geometry_msgs.msg
+from moveit_msgs.msg import RobotTrajectory
 from math import pi
 import numpy as np
 # import tf
 from tf.msg import tfMessage
 from tf.transformations import quaternion_from_euler
 from geometry_msgs.msg import Vector3, Pose2D, Pose, PointStamped
-from std_msgs.msg  import Float32
+from std_msgs.msg  import Float32, Header
 import roslaunch
 import math
 from bin_picking.msg import TargetsPose
@@ -37,19 +36,21 @@ scene = moveit_commander.PlanningSceneInterface()
 group = moveit_commander.MoveGroupCommander("manipulator")
 
 # DisplayTrajectory publisher which is used to publish trajectories for RVIZ to visualize.
-display_trajectory_publisher = rospy.Publisher(
-                                    '/move_group/display_planned_path',
-                                    moveit_msgs.msg.DisplayTrajectory,
-                                    queue_size=20)
-rospy.sleep(1)
+# display_trajectory_publisher = rospy.Publisher(
+#                                     '/move_group/display_planned_path',
+#                                     moveit_msgs.msg.DisplayTrajectory,
+#                                     queue_size=20)
+# rospy.sleep(1)
 
-group.set_planning_time(10)
-# rate = rospy.Rate(10) # 10hz
+header = Header()
+header.stamp = rospy.Time.now() 
+rate = rospy.Rate(10) # 10hz
 
 # Publisher of pointStamped of the grasping point
 grasping_point_pub = rospy.Publisher(
                                     '/graspingPoint',
-                                    PointStamped)
+                                    PointStamped,
+                                    queue_size = 10)
 
 print "============ Waiting for RVIZ..."
 # rospy.sleep(10)
@@ -64,46 +65,41 @@ print "============ Robot Groups: %s" %robot.get_group_names()
 # print robot.get_current_state()
 # print "============"
 
-# normal = Vector3()
-# approx_point = Vector3()
-# eef_position_laser = Vector3()
-# # roll = 0.0
+normal = Vector3()
+approx_point = Vector3()
+eef_position_laser = Vector3()
+# roll = 0.0
 roll = np.pi
-# pitch = Float32()
-# yaw = Float32()
-# laser_reading = Float32()
-# # pitch = 0.0
-# # yaw = 0.0
+pitch = Float32()
+yaw = Float32()
+laser_reading = Float32()
 
-# def callback_targets_pose(targets_pose):
+def callback_targets_pose(targets_pose):
 
-#     normal.x = targets_pose.normal.x
-#     normal.y = targets_pose.normal.y
-#     normal.z = targets_pose.normal.z
+    normal.x = targets_pose.normal.x
+    normal.y = targets_pose.normal.y
+    normal.z = targets_pose.normal.z
 
-#     approx_point.x = targets_pose.approx_point.x
-#     approx_point.y = targets_pose.approx_point.y
-#     approx_point.z = targets_pose.approx_point.z
+    approx_point.x = targets_pose.approx_point.x
+    approx_point.y = targets_pose.approx_point.y
+    approx_point.z = targets_pose.approx_point.z
 
-#     eef_position_laser.x = targets_pose.eef_position.x
-#     eef_position_laser.y = targets_pose.eef_position.y
-#     eef_position_laser.z = targets_pose.eef_position.z
+    eef_position_laser.x = targets_pose.eef_position.x
+    eef_position_laser.y = targets_pose.eef_position.y
+    eef_position_laser.z = targets_pose.eef_position.z
 
-#     # roll = 0.0
-#     # pitch = targets_pose.euler_angles.y
-#     # yaw = targets_pose.euler_angles.x
-#     pitch.data = targets_pose.euler_angles.y
-#     yaw.data = targets_pose.euler_angles.x
+    pitch.data = targets_pose.euler_angles.y
+    yaw.data = targets_pose.euler_angles.x
 
-# def callback_laser_sensor(output_laser_reading):
-#     laser_reading.data = output_laser_reading
+def callback_laser_sensor(output_laser_reading):
+    laser_reading.data = output_laser_reading
 
-# rospy.Subscriber("/targets_pose", TargetsPose, callback_targets_pose)
-# rospy.Subscriber("/output_laser_sensor", Float32, callback_laser_sensor)
+rospy.Subscriber("/targets_pose", TargetsPose, callback_targets_pose)
+rospy.Subscriber("/output_laser_sensor", Float32, callback_laser_sensor)
 
 print "============ Generating plan 1 = 1st POSITION - Visualize Workspace  ============"
-# group.set_planning_time(10.0)
-# group.setPlannerID("RRTConnectkConfigDefault")
+group.set_planning_time(10.0)
+group.set_planner_id("RRTConnectkConfigDefault")
 
 visualization_point = Vector3()
 visualization_point.x = 0.440
@@ -114,14 +110,10 @@ visualization_point.z = 0.440
 quaternion_init = quaternion_from_euler(-np.pi, 0, roll)
 print "The quaternion representation is %s %s %s %s." % (quaternion_init[0], quaternion_init[1], quaternion_init[2], quaternion_init[3])
 
+# exit()
+n_points1 = 5
 # GENERATING PLAN
-plan1, fraction1 = generate_plan(group, visualization_point, 5, quaternion_init)
-
-display_trajectory = moveit_msgs.msg.DisplayTrajectory()
-display_trajectory.trajectory_start = robot.get_current_state()
-display_trajectory.trajectory.append(plan1)
-# Publish
-display_trajectory_publisher.publish(display_trajectory)
+plan1, fraction1 = generate_plan(group, visualization_point, n_points1, quaternion_init)
 
 # MOVEMENT
 move_robot(plan1, fraction1, group)
@@ -130,7 +122,6 @@ print "============ MOVING plan 1 = 1st POSITION - Visualize Workspace  ========
 print "When the robot STOPS moving press any key to continue!"
 raw_input()
 
-exit()
 
 # Launch objDetection and pointTFtransfer nodes
 uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
@@ -167,24 +158,58 @@ while raw_input('') != 'a':
 #Stop Launch node objDetection and pointTFtransfer
 launch_objDetect_pointTF.shutdown()
 # after having stopped both nodes the subscribed topics will be the last published and will be a fixed value
+
+if raw_input("Are the points OK ??? If NOT press n to relaunch !!!") == 'n' :
+    # Launch objDetection and pointTFtransfer nodes
+    uuid2 = roslaunch.rlutil.get_or_generate_uuid(None, False)
+    roslaunch.configure_logging(uuid2)
+    launch_objDetect_pointTF2 = roslaunch.parent.ROSLaunchParent(uuid2, ["/home/joana/catkin_ws/src/Bin-picking/bin_picking/launch/objDetection_pointTFtranfer.launch"])
+    launch_objDetect_pointTF2.start()
+    print "=== Running node objDetection and pointTFtransfer "
+
+    # WAIT for "a" to be pressed
+    print "Normal: "
+    print normal
+    print "Approximation Point: "
+    print approx_point
+    print "End-effector Position for laser sensor measurement: "
+    print eef_position_laser
+    print "Euler Angles: "
+    print "yaw: ", yaw.data, " pitch: ", pitch.data
+    while raw_input('') != 'a':
+        print "Normal: "
+        print normal
+        print "Approximation Point: "
+        print approx_point
+        print "End-effector Position for laser sensor measurement: "
+        print eef_position_laser
+        print "Euler Angles: "
+        print "yaw: ", yaw.data, " pitch: ", pitch.data
+        print "Press A to Confirm Values and Continue!!!!!"
+
+    #Stop Launch node objDetection and pointTFtransfer
+    launch_objDetect_pointTF2.shutdown()
     
 print "============ Generating plan 2 = 2nd POSITION - Measure with laser sensor ============"   
 
 # Quaternions of the Euler angles
-quaternion = quaternion_from_euler(math.radians(yaw), math.radians(pitch.data), math.radians(roll.data))
+quaternion = quaternion_from_euler(math.radians(yaw.data), math.radians(pitch.data), roll)
 print "The quaternion representation is %s %s %s %s." % (quaternion[0], quaternion[1], quaternion[2], quaternion[3])
+quaternion[1] = - quaternion[1]
 
 # GENERATING PLAN
 plan2, fraction2 = generate_plan(group, eef_position_laser, 5, quaternion)
 
 # MOVING
-# move_robot(plan2, fraction2, group)
+move_robot(plan2, fraction2, group)
 
 print "============ MOVING plan 2 = 2nd POSITION - Measure with laser sensor ============"
 print "When the robot STOPS moving press any key to continue!"
 raw_input()
 
-launch_sensorRS232 = roslaunch.parent.ROSLaunchParent(uuid, ["/home/joana/catkin_ws/src/Bin-picking/bin_picking/launch/sensorRS232.launch"])
+uuid3 = roslaunch.rlutil.get_or_generate_uuid(None, False)
+roslaunch.configure_logging(uuid3)
+launch_sensorRS232 = roslaunch.parent.ROSLaunchParent(uuid3, ["/home/joana/catkin_ws/src/Bin-picking/bin_picking/launch/sensorRS232.launch"])
 # Start Launch node sensorRS232
 launch_sensorRS232.start()
 
@@ -206,11 +231,13 @@ print "============ Generating plan 3 = 3rd POSITION - Approximation point  ====
 
 print "=== Calculating Grasping point... "
 
+laser_reading_float = laser_reading.data
+
 grasping_point = Vector3()
 # + or -
-grasping_point.x = approx_point.x + laser_reading.data*normal.x
-grasping_point.y = approx_point.y + laser_reading.data*normal.y
-grasping_point.z = approx_point.z + laser_reading.data*normal.z
+grasping_point.x = approx_point.x + laser_reading_float.data * 0.001 * normal.x
+grasping_point.y = approx_point.y + laser_reading_float.data * 0.001 * normal.y
+grasping_point.z = approx_point.z + laser_reading_float.data * 0.001 * normal.z
 
 print " ==== Grasping Point ===="
 print grasping_point
@@ -224,6 +251,7 @@ grasping_point_ps.point.z = grasping_point.z
 
 grasping_point_pub.publish(grasping_point_ps)
 
+print "Confirm Grasping Point!!!"
 raw_input()
 
 # GENERATING PLAN
@@ -244,6 +272,9 @@ move_robot(plan4, fraction4, group)
 print "============ MOVING plan 4 = 4th POSITION - Grasping point ============"
 print "When the robot STOPS moving press any key to continue!"
 raw_input()
+exit()
+
+# ====================================================================================================================
 
 print "============ SUCTION ============"
 # SUCTION

@@ -204,7 +204,7 @@ int main (int argc, char* argv[])
 
             // APPROXIMATION POINT FOR LASER
             transformStamped_laser = tfBuffer.lookupTransform("ls_optical_frame", "eef_tool_tip", ros::Time(0),ros::Duration(3.0));
-            // cout << "Transformation from tool tip to laser" << transformStamped_laser << endl;
+            cout << "Transformation from tool tip to laser emitter" << transformStamped_laser << endl;
 
             Eigen::Matrix4f T_eef_ls(4,4);
             Eigen::Quaterniond qua;
@@ -224,7 +224,7 @@ int main (int argc, char* argv[])
             T_eef_ls(2,1) = Rot(2,1);
             T_eef_ls(2,2) = Rot(2,2);
             T_eef_ls(0,3) = transformStamped_laser.transform.translation.x;
-            T_eef_ls(1,3) = transformStamped_laser.transform.translation.y;
+            T_eef_ls(1,3) = -transformStamped_laser.transform.translation.y;
             T_eef_ls(2,3) = transformStamped_laser.transform.translation.z;
             T_eef_ls(3,0) = 0;
             T_eef_ls(3,1) = 0;
@@ -255,6 +255,7 @@ int main (int argc, char* argv[])
 
             Eigen::Matrix4f T_robot_eef(4,4);
             T_robot_eef = T_eef_ls.inverse() * T_robot_point;
+            // T_robot_eef = T_robot_point * T_eef_ls.inverse();
 
             // cout << "Transformation from robot base to End-effector: \n" << T_robot_eef << endl;
 

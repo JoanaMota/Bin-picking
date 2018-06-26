@@ -2,7 +2,9 @@
 import copy
 import rospy
 import math
-from geometry_msgs.msg import Vector3, Pose2D, Pose, PointStamped
+from geometry_msgs.msg import Vector3, Pose2D, Pose
+import moveit_commander
+import moveit_msgs.msg
 
 
 def generate_plan(group, final_point, number_of_points, q):
@@ -56,11 +58,13 @@ def generate_plan(group, final_point, number_of_points, q):
     # 0.01 as the eef_step in cartesian translation. 
     # We will specify the jump threshold as 0.0, effectively
     # disabling it.
-    (plan, fraction) = group.compute_cartesian_path(
+    plan, fraction = group.compute_cartesian_path(
                                 waypoints,   # waypoints to follow
                                 0.01,        # eef_step 
                                 0.0)         # jump_threshold 
-
+    for i in range(len(plan.joint_trajectory.points)-1):
+        plan.joint_trajectory.points[i].time_from_start = rospy.Time.now() + plan.joint_trajectory.points[i].time_from_start
+    
     print "=== Waiting while RVIZ displays plan..."
     rospy.sleep(5)
 
@@ -68,16 +72,14 @@ def generate_plan(group, final_point, number_of_points, q):
 
 def move_robot(plan, fraction, group):
 
+    print "fraction: ", fraction
     if fraction == 1.0:
         print "planning was successful"
         print "============ IS PLAN OK??  "
-        print "If YES Press any key to MOVE!!"
-        raw_input()
-        # MOVEMENT
-        group.execute(plan, wait=True)
-        # group.move(plan)
+        if raw_input("Should I MOVE???? If YES press y!!!!") == 'y' :
+            # MOVEMENT
+            group.execute(plan)
     else:
         print "planning was not successfull"
-    print fraction
 
 

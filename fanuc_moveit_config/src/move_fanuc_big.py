@@ -136,6 +136,14 @@ display_trajectory.trajectory_start = robot.get_current_state()
 display_trajectory.trajectory.append(plan1)
 display_trajectory_publisher.publish(display_trajectory)
 
+# group.set_joint_value_target([0, 0, 0, 0, -pi / 2, 0])
+# plan = group.plan()
+# print plan
+# print "============ IS PLAN OK??  "
+# print "If YES Press any key to MOVE!!"
+# raw_input()
+# group.execute(plan)
+
 print "=== Waiting while plan1 is visualized (again)..."
 rospy.sleep(5)
 
