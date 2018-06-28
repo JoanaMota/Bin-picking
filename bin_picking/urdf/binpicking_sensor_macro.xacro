@@ -9,6 +9,7 @@
 
         <joint name="${prefix}base_link-${prefix}optical_frame" type="fixed">
             <origin xyz="0.0478 0.0166 -0.0636" rpy="0 0 0" />
+            <!-- <origin xyz="0.0478 0.0166 -0.0646" rpy="0 0 0" /> -->
             <parent link="${prefix}base_link" />
             <child link="${prefix}optical_frame" />
         </joint>

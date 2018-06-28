@@ -10,7 +10,7 @@ import numpy as np
 # import tf
 from tf.msg import tfMessage
 from tf.transformations import quaternion_from_euler
-from geometry_msgs.msg import Vector3, Pose2D, Pose, PointStamped
+from geometry_msgs.msg import Vector3, Pose2D, Pose, PointStamped, Quaternion
 from std_msgs.msg  import Float32, Header
 import roslaunch
 import math
@@ -108,6 +108,7 @@ visualization_point.z = 0.440
 
 # Quaternions of the Euler angles
 quaternion_init = quaternion_from_euler(-np.pi, 0, roll)
+# quaternion_init = quaternion_from_euler(-160*np.pi/180, -7.53*np.pi/180, roll)
 print "The quaternion representation is %s %s %s %s." % (quaternion_init[0], quaternion_init[1], quaternion_init[2], quaternion_init[3])
 
 # exit()
@@ -120,7 +121,8 @@ move_robot(plan1, fraction1, group)
 
 print "============ MOVING plan 1 = 1st POSITION - Visualize Workspace  ============"
 print "When the robot STOPS moving press any key to continue!"
-raw_input()
+if raw_input("If you want to EXIT press e: ") == 'e' :
+    exit()
 
 
 # Launch objDetection and pointTFtransfer nodes
@@ -193,9 +195,41 @@ if raw_input("Are the points OK ??? If NOT press n to relaunch !!!") == 'n' :
 print "============ Generating plan 2 = 2nd POSITION - Measure with laser sensor ============"   
 
 # Quaternions of the Euler angles
-quaternion = quaternion_from_euler(math.radians(yaw.data), math.radians(pitch.data), roll)
+quaternion = quaternion_from_euler( roll, math.radians(-pitch.data), math.radians(-yaw.data), 'rzyx')
 print "The quaternion representation is %s %s %s %s." % (quaternion[0], quaternion[1], quaternion[2], quaternion[3])
-quaternion[1] = - quaternion[1]
+# quaternion[0] = -quaternion[0]
+# quaternion[1] = -quaternion[1]
+# quaternion[2] = -quaternion[2]
+# quaternion[3] = -quaternion[3]
+
+q = Quaternion()
+
+cr = math.cos(math.radians(yaw.data) * 0.5)
+sr = math.sin(math.radians(yaw.data) * 0.5)
+cp = math.cos(math.radians(pitch.data) * 0.5)
+sp = math.sin(math.radians(pitch.data) * 0.5)
+cy = math.cos(roll * 0.5)
+sy = math.sin(roll * 0.5)
+
+q.w = cr * cy * cp + sr * sy * sp
+q.z = sr * cy * cp - cr * sy * sp
+q.x = cr * sy * cp - sr * cy * sp
+q.y = cr * cy * sp + sr * sy * cp
+
+quaternion2 = [ q.x, q.y, q.z, q.w ]
+
+print "The quaternion representation is %s %s %s %s." % (quaternion2[0], quaternion2[1], quaternion2[2], quaternion2[3])
+
+# # GENERATING PLAN
+# plan3, fraction3 = generate_plan(group, approx_point, 5, quaternion)
+
+# # MOVING
+# move_robot(plan3, fraction3, group)
+# print "============ MOVING plan 3 = 3rd POSITION - Approximation point ============"
+# print "When the robot STOPS moving press any key to continue!"
+# if raw_input("If you want to EXIT press e: ") == 'e' :
+#     exit()
+
 
 # GENERATING PLAN
 plan2, fraction2 = generate_plan(group, eef_position_laser, 5, quaternion)
@@ -204,8 +238,9 @@ plan2, fraction2 = generate_plan(group, eef_position_laser, 5, quaternion)
 move_robot(plan2, fraction2, group)
 
 print "============ MOVING plan 2 = 2nd POSITION - Measure with laser sensor ============"
-print "When the robot STOPS moving press any key to continue!"
-raw_input()
+print "When the robot STOPS moving press ENTER to continue!"
+if raw_input("If you want to EXIT press e: ") == 'e' :
+    exit()
 
 uuid3 = roslaunch.rlutil.get_or_generate_uuid(None, False)
 roslaunch.configure_logging(uuid3)
@@ -261,7 +296,8 @@ plan3, fraction3 = generate_plan(group, approx_point, 5, quaternion)
 move_robot(plan3, fraction3, group)
 print "============ MOVING plan 3 = 3rd POSITION - Approximation point ============"
 print "When the robot STOPS moving press any key to continue!"
-raw_input()
+if raw_input("If you want to EXIT press e: ") == 'e' :
+    exit()
 
 print "============ Generating plan 4 = 4th POSITION - Grasping point  ============"    
 # GENERATING PLAN
@@ -271,7 +307,8 @@ plan4, fraction4 = generate_plan(group, grasping_point, 5, quaternion)
 move_robot(plan4, fraction4, group)
 print "============ MOVING plan 4 = 4th POSITION - Grasping point ============"
 print "When the robot STOPS moving press any key to continue!"
-raw_input()
+if raw_input("If you want to EXIT press e: ") == 'e' :
+    exit()
 exit()
 
 # ====================================================================================================================
@@ -288,4 +325,5 @@ move_robot(plan5, fraction5, group)
 
 print "============ MOVING plan 5 = 5th POSITION -Return to Approximation point  ============"    
 print "When the robot STOPS moving press any key to continue!"
-raw_input()
+if raw_input("If you want to EXIT press e: ") == 'e' :
+    exit()

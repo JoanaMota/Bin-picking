@@ -85,7 +85,7 @@ int main (int argc, char* argv[])
         robotCom c(io_service, iterator);
         
         //MOVE TO POINT -- for Kinect to acquire point cloud
-        c.movtocpos("440.000 0.000 280.000 -180 0 0 0 1 1 0 0 0 1 50 1");
+        // c.movtocpos("440.000 0.000 280.000 -180 0 0 0 1 1 0 0 0 1 50 1");
         stringstream ss_input_arg;
 
         // ss_input_arg << X << Y << Z << "-179.996 0.013 -0.003 0 1 1 0 0 0 1 10 1";
@@ -97,7 +97,9 @@ int main (int argc, char* argv[])
         // Z = 44.8388 - 162 
         // c.movtocpos("426.163 80.7843 -19 -8.66128 -20.7937 0 0 1 1 0 0 0 1 40 1");
         // c.movtocpos("426.163 80.7843 -19 −188,66128 -20.7937 0 0 1 1 0 0 0 1 40 1");
-        // c.movtocpos("416.075 128.825 -140 -179.996 0.013 -0.003 0 1 1 0 0 0 1 40 1");
+        // c.movtocpos("456.242 171.893 0 -171.791 -17.5447 0 0 1 1 0 0 0 1 40 1"); //direita junto a mim
+        // c.movtocpos("282.529 -21.5311 0 171.136 -14.53374 0 0 1 1 0 0 0 1 40 1");    // esquerda junto a mim
+        // c.movtocpos("282.529 -21.5311 0 161.136 7.53374 0 0 1 1 0 0 0 1 40 1");    // esquerda longe de mim
         // 427.852, 39.319, -92.222, -165.276, 11.345, -20.743, 0, 1, 1, 0, 0, 0
 
 

@@ -65,6 +65,7 @@ int main (int argc, char* argv[])
     // ros::Publisher centroid_pointStamped_depth = node.advertise<geometry_msgs::PointStamped>("/centroidPS_in_robot_base_depth", 1);
     tf2_ros::Buffer tfBuffer; 
     tf2_ros::TransformListener tfListener(tfBuffer);
+    tf2_ros::TransformBroadcaster br;
 
     ros::Rate rate(10.0);
     while (node.ok())
@@ -95,13 +96,16 @@ int main (int argc, char* argv[])
 
         // Calculate approximation point with normal and centroid
         geometry_msgs::PointStamped approx_point_initial_pt;
-        approx_point_initial_pt.point.x = centroid_initial_pt.point.x + 0.15 * normal_initial_pt.point.x;
-        approx_point_initial_pt.point.y = centroid_initial_pt.point.y + 0.15 * normal_initial_pt.point.y;
-        approx_point_initial_pt.point.z = centroid_initial_pt.point.z + 0.15 * normal_initial_pt.point.z;
+        approx_point_initial_pt.point.x = centroid_initial_pt.point.x + 0.25 * normal_initial_pt.point.x;
+        approx_point_initial_pt.point.y = centroid_initial_pt.point.y + 0.25 * normal_initial_pt.point.y;
+        approx_point_initial_pt.point.z = centroid_initial_pt.point.z + 0.25 * normal_initial_pt.point.z;
 
 
         geometry_msgs::TransformStamped transformStamped;
         geometry_msgs::TransformStamped transformStamped_laser;
+        geometry_msgs::TransformStamped transformStamped_approx_point;
+        geometry_msgs::TransformStamped transformStamped_eef_pose;
+        geometry_msgs::TransformStamped transformStamped_robot_to_eef;
         try
         {
             transformStamped = tfBuffer.lookupTransform("robot_base_link", "camera_rgb_optical_frame", ros::Time(0),ros::Duration(3.0));
@@ -131,7 +135,7 @@ int main (int argc, char* argv[])
             approx_point_robot_base.y = approx_point_transformed_pt.point.y;
             approx_point_robot_base.z = approx_point_transformed_pt.point.z;
 
-            // cout << "Approximation Point : " << approx_point_transformed_pt << endl; 
+            cout << "Approximation Point : " << approx_point_transformed_pt << endl; 
 
             // Calculate the normal (in relation to the robot_base_link) between the the Centroid and the approx Point:
             // This is already an unit vector
@@ -196,15 +200,52 @@ int main (int argc, char* argv[])
             yaw = yaw6;
 
             cout << "yaw: " << yaw << endl;    
-            cout << "pitch: " << pitch << endl;  
+            cout << "pitch: " << -pitch << endl;  
 
             geometry_msgs::Pose2D  euler_angles;
-            euler_angles.x=yaw;
-            euler_angles.y=abs(pitch);
+            euler_angles.x = yaw;
+            euler_angles.y = -pitch;
 
             // APPROXIMATION POINT FOR LASER
             transformStamped_laser = tfBuffer.lookupTransform("ls_optical_frame", "eef_tool_tip", ros::Time(0),ros::Duration(3.0));
-            cout << "Transformation from tool tip to laser emitter" << transformStamped_laser << endl;
+            // transformStamped_laser = tfBuffer.lookupTransform("eef_tool_tip", "ls_optical_frame", ros::Time(0),ros::Duration(3.0));
+            // cout << "Transformation from tool tip to laser emitter" << transformStamped_laser << endl;
+
+            transformStamped_approx_point.header.stamp = ros::Time::now();
+            transformStamped_approx_point.header.frame_id = "robot_base_link";
+            transformStamped_approx_point.child_frame_id = "approx_point_tf";
+            transformStamped_approx_point.transform.translation.x = approx_point_robot_base.x;
+            transformStamped_approx_point.transform.translation.y = approx_point_robot_base.y;
+            transformStamped_approx_point.transform.translation.z = approx_point_robot_base.z;
+            tf2::Quaternion q;
+            q.setRPY(yaw*M_PI/180.0, -pitch*M_PI/180.0, 0);
+            transformStamped_approx_point.transform.rotation.x = q.x();
+            transformStamped_approx_point.transform.rotation.y = q.y();
+            transformStamped_approx_point.transform.rotation.z = q.z();
+            transformStamped_approx_point.transform.rotation.w = q.w();
+            br.sendTransform(transformStamped_approx_point);
+
+            transformStamped_eef_pose.header.stamp = ros::Time::now();
+            transformStamped_eef_pose.header.frame_id = "approx_point_tf";
+            transformStamped_eef_pose.child_frame_id = "eef_pose";
+            transformStamped_eef_pose.transform.translation.x = -transformStamped_laser.transform.translation.x;
+            transformStamped_eef_pose.transform.translation.y = -transformStamped_laser.transform.translation.y;
+            transformStamped_eef_pose.transform.translation.z = transformStamped_laser.transform.translation.z;
+            transformStamped_eef_pose.transform.rotation.x = 0;
+            transformStamped_eef_pose.transform.rotation.y = 0;
+            transformStamped_eef_pose.transform.rotation.z = 0;
+            transformStamped_eef_pose.transform.rotation.w = 1;
+            br.sendTransform(transformStamped_eef_pose);
+
+
+            transformStamped_robot_to_eef = tfBuffer.lookupTransform("robot_base_link", "eef_pose", ros::Time(0),ros::Duration(3.0));
+            cout << "Transformation from tool tip to laser emitter" << transformStamped_robot_to_eef << endl;
+
+            geometry_msgs::Vector3 eef_position_laser_reading;
+            eef_position_laser_reading.x = transformStamped_robot_to_eef.transform.translation.x;
+            eef_position_laser_reading.y = transformStamped_robot_to_eef.transform.translation.y;
+            eef_position_laser_reading.z = transformStamped_robot_to_eef.transform.translation.z;
+
 
             Eigen::Matrix4f T_eef_ls(4,4);
             Eigen::Quaterniond qua;
@@ -223,46 +264,101 @@ int main (int argc, char* argv[])
             T_eef_ls(2,0) = Rot(2,0);
             T_eef_ls(2,1) = Rot(2,1);
             T_eef_ls(2,2) = Rot(2,2);
-            T_eef_ls(0,3) = transformStamped_laser.transform.translation.x;
-            T_eef_ls(1,3) = -transformStamped_laser.transform.translation.y;
-            T_eef_ls(2,3) = transformStamped_laser.transform.translation.z;
+            T_eef_ls(0,3) = transformStamped_laser.transform.translation.x ;
+            T_eef_ls(1,3) = transformStamped_laser.transform.translation.y ;
+            T_eef_ls(2,3) = transformStamped_laser.transform.translation.z ;
             T_eef_ls(3,0) = 0;
             T_eef_ls(3,1) = 0;
             T_eef_ls(3,2) = 0;
             T_eef_ls(3,3) = 1;
 
             // cout << "Transformation from enf-effector to laser: \n" << T_eef_ls << endl; 
+
+            // yaw = - yaw;
+            // pitch = - pitch;
             
             Eigen::Matrix4f T_robot_point(4,4);
-            T_robot_point(0,0) = -cos(pitch);
-            T_robot_point(0,1) = -sin(yaw)*sin(pitch);
-            T_robot_point(0,2) = -cos(yaw)*sin(pitch);
+            // T_robot_point(0,0) = -cos(pitch);
+            // T_robot_point(0,1) = -sin(yaw)*sin(pitch);
+            // T_robot_point(0,2) = -cos(yaw)*sin(pitch);
+            // T_robot_point(1,0) = 0;
+            // T_robot_point(1,1) = -cos(yaw);
+            // T_robot_point(1,2) = sin(yaw);
+            // T_robot_point(2,0) = -sin(pitch);
+            // T_robot_point(2,1) = cos(pitch)*sin(yaw);
+            // T_robot_point(2,2) = cos(yaw)*cos(pitch);
+            T_robot_point(0,0) = cos(pitch*M_PI/180.0);
+            T_robot_point(0,1) = sin(yaw*M_PI/180.0)*sin(pitch*M_PI/180.0);
+            T_robot_point(0,2) = cos(yaw*M_PI/180.0)*sin(pitch*M_PI/180.0);
             T_robot_point(1,0) = 0;
-            T_robot_point(1,1) = -cos(yaw);
-            T_robot_point(1,2) = sin(yaw);
-            T_robot_point(2,0) = -sin(pitch);
-            T_robot_point(2,1) = cos(pitch)*sin(yaw);
-            T_robot_point(2,2) = cos(yaw)*cos(pitch);
-            T_robot_point(0,3) = approx_point_robot_base.x;
-            T_robot_point(1,3) = approx_point_robot_base.y;
-            T_robot_point(2,3) = approx_point_robot_base.z;
+            T_robot_point(1,1) = cos(yaw*M_PI/180.0);
+            T_robot_point(1,2) = -sin(yaw*M_PI/180.0);
+            T_robot_point(2,0) = -sin(pitch*M_PI/180.0);
+            T_robot_point(2,1) = cos(pitch*M_PI/180.0)*sin(yaw*M_PI/180.0);
+            T_robot_point(2,2) = cos(yaw*M_PI/180.0)*cos(pitch*M_PI/180.0);
+            T_robot_point(0,3) = 0;
+            T_robot_point(1,3) = 0;
+            T_robot_point(2,3) = 0;
             T_robot_point(3,0) = 0;
             T_robot_point(3,1) = 0;
             T_robot_point(3,2) = 0;
             T_robot_point(3,3) = 1;
 
+            Eigen::Matrix4f T_trans1(4,4);
+            // T_robot_point(0,0) = -cos(pitch);
+            // T_robot_point(0,1) = -sin(yaw)*sin(pitch);
+            // T_robot_point(0,2) = -cos(yaw)*sin(pitch);
+            // T_robot_point(1,0) = 0;
+            // T_robot_point(1,1) = -cos(yaw);
+            // T_robot_point(1,2) = sin(yaw);
+            // T_robot_point(2,0) = -sin(pitch);
+            // T_robot_point(2,1) = cos(pitch)*sin(yaw);
+            // T_robot_point(2,2) = cos(yaw)*cos(pitch);
+            T_trans1(0,0) = 1;
+            T_trans1(0,1) = 0;
+            T_trans1(0,2) = 0;
+            T_trans1(1,0) = 0;
+            T_trans1(1,1) = 1;
+            T_trans1(1,2) = 0;
+            T_trans1(2,0) = 0;
+            T_trans1(2,1) = 0;
+            T_trans1(2,2) = 1;
+            T_trans1(0,3) = approx_point_robot_base.x;
+            T_trans1(1,3) = approx_point_robot_base.y;
+            T_trans1(2,3) = approx_point_robot_base.z;
+            T_trans1(3,0) = 0;
+            T_trans1(3,1) = 0;
+            T_trans1(3,2) = 0;
+            T_trans1(3,3) = 1;
+
             // cout << "Transformation from robot base to approximation point: \n" << T_robot_point << endl; 
 
             Eigen::Matrix4f T_robot_eef(4,4);
             T_robot_eef = T_eef_ls.inverse() * T_robot_point;
-            // T_robot_eef = T_robot_point * T_eef_ls.inverse();
+            // // T_robot_eef = T_robot_point * T_eef_ls;
 
             // cout << "Transformation from robot base to End-effector: \n" << T_robot_eef << endl;
 
-            geometry_msgs::Vector3 eef_position_laser_reading;
-            eef_position_laser_reading.x = T_robot_eef(0,3);
-            eef_position_laser_reading.y = T_robot_eef(1,3);
-            eef_position_laser_reading.z = T_robot_eef(2,3);
+            // geometry_msgs::Vector3 eef_position_laser_reading;
+            // eef_position_laser_reading.x = T_robot_eef(0,3);
+            // eef_position_laser_reading.y = T_robot_eef(1,3);
+            // eef_position_laser_reading.z = T_robot_eef(2,3);
+            
+            // float eef_position_laser_reading[4];
+            // float origin[4] = {0, 0, 0, 0, 1} ;
+            // Eigen::Vector4f approx_point;
+            // approx_point(0) = approx_point_robot_base.x;
+            // approx_point(1) = approx_point_robot_base.y;
+            // approx_point(2) = approx_point_robot_base.z;
+            // approx_point(3) = 1;
+
+            // Eigen::Vector4f eef_position_laser_reading;
+
+            // // eef_position_laser_reading = T_eef_ls * T_robot_point * T_trans1 * approx_point;
+            // eef_position_laser_reading =  T_robot_point * approx_point;
+
+            // cout << "eef_position: " << eef_position_laser_reading << endl;
+
 
             // cout << "End-effector position for laser reading: \n " << eef_position_laser_reading << endl;
 

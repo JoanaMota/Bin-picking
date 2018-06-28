@@ -20,6 +20,7 @@
 // #include <pcl/registration/sample_consensus_prerejective.h>
 
 #include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/search/kdtree.h>
 
 #include <pcl/point_types.h>
 #include <pcl/features/normal_3d.h>
@@ -44,6 +45,9 @@
 #include <tf/transform_listener.h>
 #include "geometry_msgs/PointStamped.h"
 #include "message_filters/subscriber.h"
+
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 // for visualization
 #include <boost/thread/thread.hpp>

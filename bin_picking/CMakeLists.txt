@@ -111,11 +111,14 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES bin_picking
-#  CATKIN_DEPENDS message_runtime pcl_conversions pcl_ros roscpp rospy sensor_msgs std_msgs
-#  DEPENDS system_lib
-)
+  #  INCLUDE_DIRS include
+  #  LIBRARIES bin_picking
+  #  CATKIN_DEPENDS message_runtime pcl_conversions pcl_ros roscpp rospy sensor_msgs std_msgs
+  #  DEPENDS system_lib
+  )
+# set(PCL_INCLUDE_DIRS /usr/local/include/pcl-1.8)  
+  
+  
 
 ###########
 ## Build ##
@@ -126,6 +129,7 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  # ${PCL_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -141,11 +145,15 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(objDetection src/objDetection.cpp)
 
 add_executable(pointTFtransfer src/pointTFtransfer.cpp)
 
+add_executable(objDetection src/objDetection.cpp)
+
 add_executable(sensorRS232 src/sensorRS232.cpp)
+
+add_executable(end_effector_position src/end_effector_position.cpp)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -157,15 +165,26 @@ add_executable(sensorRS232 src/sensorRS232.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(objDetection
-  ${catkin_LIBRARIES}
-)
 target_link_libraries(pointTFtransfer
 ${catkin_LIBRARIES}
+# ${PCL_LIBRARIES}
 )
+
+target_link_libraries(objDetection
+  ${catkin_LIBRARIES}
+  # ${PCL_LIBRARIES}
+)
+
 target_link_libraries(sensorRS232
   ${catkin_LIBRARIES}
+  # ${PCL_LIBRARIES}
 )
+target_link_libraries(end_effector_position
+  ${catkin_LIBRARIES}
+  # ${PCL_LIBRARIES}
+)
+
+
 
 #############
 ## Install ##

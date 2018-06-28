@@ -9,6 +9,8 @@
 #include <string.h>     // string function definitions
 #include <errno.h>      // Error number definitions
 #include <termios.h>    // POSIX terminal control definitions
+#include <vector>                                                               
+#include <numeric> 
 
 // #define O_RDONLY         00
 // #define O_WRONLY         01

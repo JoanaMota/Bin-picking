@@ -17,6 +17,14 @@
 #include "../include/bin_picking/header_pcl.h"
 #include "../include/bin_picking/pcl_fun.h"
 
+#include <pcl/search/impl/search.hpp>
+
+#ifndef PCL_NO_PRECOMPILE
+#include <pcl/impl/instantiate.hpp>
+#include <pcl/point_types.h>
+PCL_INSTANTIATE(Search, PCL_POINT_TYPES)
+#endif // PCL_NO_PRECOMPILE
+
 using namespace std;
 
 ros::Publisher pub;
