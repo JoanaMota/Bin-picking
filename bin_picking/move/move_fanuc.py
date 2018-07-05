@@ -57,6 +57,8 @@ pitch = Float32()
 yaw = Float32()
 laser_reading = Float32()
 
+# Function for sending a ROS msg to the vs_IO_client.cpp node responsable for altering the state of the IOs
+# function - 1 to read, 2 to switch on and 3 to switch of the respective IO number (ionumber)
 def monitoring_ios(function,ionumber):
     cod = function*10 + ionumber
     io_msg = ios()
@@ -100,6 +102,7 @@ visualization_point.z = 0.440
 # Quaternions of the Euler angles
 quaternion_init = quaternion_from_euler(-np.pi, 0, roll)
 
+# 1st POSITION - Visualize Workspace
 # GENERATING PLAN
 plan1, fraction1 = generate_plan(group, visualization_point, 5, quaternion_init)
 
@@ -122,6 +125,7 @@ launch_objDetect_pointTF.shutdown()
 # Quaternions of the Euler angles
 quaternion = quaternion_from_euler( roll, math.radians(-pitch.data), math.radians(-yaw.data), 'rzyx')
 
+# 2nd POSITION - Measure with laser sensor
 # GENERATING PLAN
 plan2, fraction2 = generate_plan(group, eef_position_laser, 5, quaternion)
 
@@ -157,25 +161,31 @@ grasping_point_ps.point.z = grasping_point.z
 
 grasping_point_pub.publish(grasping_point_ps)
 
+# 3rd POSITION - Approximation point
 # GENERATING PLAN
 plan3, fraction3 = generate_plan(group, approx_point, 5, quaternion)
 
 # MOVING
 move_robot(plan3, fraction3, group)
 
+# 4th POSITION - Grasping point
 # GENERATING PLAN
 plan4, fraction4 = generate_plan(group, grasping_point, 5, quaternion)
 
 # MOVING
 move_robot(plan4, fraction4, group)
-exit()
 
-# ====================================================================================================================
-
+# IO number 8 activates the suction
+# First activate IO number for for IO number 8 to work
+monitoring_ios(2,4)
 monitoring_ios(2,8)
 
+# 5th POSITION -Return to Approximation point 
 # GENERATING PLAN 5
 plan5, fraction5 = generate_plan(group, approx_point, 5, quaternion)
 
 # MOVING
 move_robot(plan5, fraction5, group)
+monitoring_ios(3,8)
+monitoring_ios(3,4)
+exit()

@@ -163,6 +163,8 @@ int main (int argc, char* argv[])
             transformStamped_approx_point.transform.rotation.z = q.z();
             transformStamped_approx_point.transform.rotation.w = q.w();
             br.sendTransform(transformStamped_approx_point);
+            ros::spinOnce();
+            
 
             // TF with Origin in the end-effector position for laser reading with a translation from the TF in the approximation point
             transformStamped_eef_pose.header.stamp = ros::Time::now();
@@ -176,7 +178,8 @@ int main (int argc, char* argv[])
             transformStamped_eef_pose.transform.rotation.z = 0;
             transformStamped_eef_pose.transform.rotation.w = 1;
             br.sendTransform(transformStamped_eef_pose);
-
+            ros::spinOnce();
+            
             // Transformation from the frame of the end-effector position in relation to the robot_base_link frame
             transformStamped_robot_to_eef = tfBuffer.lookupTransform("robot_base_link", "eef_pose", ros::Time(0),ros::Duration(3.0));
 

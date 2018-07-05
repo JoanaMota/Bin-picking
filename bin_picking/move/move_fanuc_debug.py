@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 import sys
 import copy
@@ -12,12 +13,13 @@ from tf.msg import tfMessage
 from tf.transformations import quaternion_from_euler
 from geometry_msgs.msg import Vector3, Pose2D, Pose, PointStamped, Quaternion
 from std_msgs.msg  import Float32, Header
-import roslaunch
 import math
 from bin_picking.msg import TargetsPose
 from robonuc.msg import ios
+import roslaunch
 
-from generate_plan_move import generate_plan, move_robot
+
+from generate_plan_move import generate_plan, move_robot, debug_targetspose
 
 # initialize moveit_commander and rospy
 print "============ Starting movement setup"
@@ -63,6 +65,8 @@ pitch = Float32()
 yaw = Float32()
 laser_reading = Float32()
 
+# Function for sending a ROS msg to the vs_IO_client.cpp node responsable for altering the state of the IOs
+# function - 1 to read, 2 to switch on and 3 to switch of the respective IO number (ionumber)
 def monitoring_ios(function,ionumber):
     cod = function*10 + ionumber
     io_msg = ios()
@@ -70,7 +74,6 @@ def monitoring_ios(function,ionumber):
     print "Setting IOs code:"
     print cod
     io_pub.publish(io_msg)
-
 
 def callback_targets_pose(targets_pose):
 
@@ -108,7 +111,6 @@ visualization_point.z = 0.440
 
 # Quaternions of the Euler angles
 quaternion_init = quaternion_from_euler(-np.pi, 0, roll)
-# quaternion_init = quaternion_from_euler(-160*np.pi/180, -7.53*np.pi/180, roll)
 print "The quaternion representation is %s %s %s %s." % (quaternion_init[0], quaternion_init[1], quaternion_init[2], quaternion_init[3])
 
 # GENERATING PLAN
@@ -122,69 +124,14 @@ print "When the robot STOPS moving press any key to continue!"
 if raw_input("If you want to EXIT press e: ") == 'e' :
     exit()
 
-
 # Launch objDetection and pointTFtransfer nodes
 uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-roslaunch.configure_logging(uuid)
-launch_objDetect_pointTF = roslaunch.parent.ROSLaunchParent(uuid, ["/home/joana/catkin_ws/src/Bin-picking/bin_picking/launch/objDetection_pointTFtranfer.launch"])
-# Start Launch node objDetection and pointTFtransfer
-launch_objDetect_pointTF.start()
-
-print "=== Running node objDetection and pointTFtransfer "
-
-print "Normal: "
-print normal
-print "Approximation Point: "
-print approx_point
-print "End-effector Position for laser sensor measurement: "
-print eef_position_laser
-print "Euler Angles: "
-print "yaw: ", yaw.data, " pitch: ", pitch.data
-while raw_input('') != 'a':
-    print "Normal: "
-    print normal
-    print "Approximation Point: "
-    print approx_point
-    print "End-effector Position for laser sensor measurement: "
-    print eef_position_laser
-    print "Euler Angles: "
-    print "yaw: ", yaw.data, " pitch: ", pitch.data
-    print "Press A to Confirm Values and Continue!!!!!"
-
-#Stop Launch node objDetection and pointTFtransfer
-launch_objDetect_pointTF.shutdown()
-# after having stopped both nodes the subscribed topics will be the last published and will be a fixed value
+debug_targetspose(uuid,normal,approx_point,eef_position_laser,yaw.data,pitch.data)
 
 if raw_input("Are the points OK ??? If NOT press n to relaunch !!!") == 'n' :
     # Launch objDetection and pointTFtransfer nodes
     uuid2 = roslaunch.rlutil.get_or_generate_uuid(None, False)
-    roslaunch.configure_logging(uuid2)
-    launch_objDetect_pointTF2 = roslaunch.parent.ROSLaunchParent(uuid2, ["/home/joana/catkin_ws/src/Bin-picking/bin_picking/launch/objDetection_pointTFtranfer.launch"])
-    launch_objDetect_pointTF2.start()
-    print "=== Running node objDetection and pointTFtransfer "
-
-    # WAIT for "a" to be pressed
-    print "Normal: "
-    print normal
-    print "Approximation Point: "
-    print approx_point
-    print "End-effector Position for laser sensor measurement: "
-    print eef_position_laser
-    print "Euler Angles: "
-    print "yaw: ", yaw.data, " pitch: ", pitch.data
-    while raw_input('') != 'a':
-        print "Normal: "
-        print normal
-        print "Approximation Point: "
-        print approx_point
-        print "End-effector Position for laser sensor measurement: "
-        print eef_position_laser
-        print "Euler Angles: "
-        print "yaw: ", yaw.data, " pitch: ", pitch.data
-        print "Press A to Confirm Values and Continue!!!!!"
-
-    #Stop Launch node objDetection and pointTFtransfer
-    launch_objDetect_pointTF2.shutdown()
+    debug_targetspose(uuid2,normal,approx_point,eef_position_laser,yaw.data,pitch.data)
     
 print "============ Generating plan 2 = 2nd POSITION - Measure with laser sensor ============"   
 
@@ -216,10 +163,8 @@ print "Wait for reading average..."
 rospy.sleep(11.)
 print "Laser Reading: "
 print laser_reading.data
-while raw_input('') != 'b':
-    print "Laser Reading: "
-    print laser_reading.data
-    print "Press B to Canfirm value and continue!!!!!"
+print "Confirm Laser Reading!"
+raw_input()
 
 # Stop Launch node sensorRS232
 launch_sensorRS232.shutdown()
@@ -228,7 +173,7 @@ print "============ Generating plan 3 = 3rd POSITION - Approximation point  ====
 
 print "=== Calculating Grasping point... "
 
-laser_reading_float = laser_reading.data
+laser_reading_float = laser_reading.data 
 
 grasping_point = Vector3()
 # + or -
@@ -241,6 +186,7 @@ print grasping_point
 
 # Creating and publishing a PointStamped of the grasping point for visualization
 grasping_point_ps = PointStamped()
+grasping_point_ps.header.stamp = rospy.Time.now()
 grasping_point_ps.header.frame_id = "/robot_base_link"
 grasping_point_ps.point.x = grasping_point.x
 grasping_point_ps.point.y = grasping_point.y
@@ -274,8 +220,9 @@ if raw_input("If you want to EXIT press e: ") == 'e' :
 
 print "============ SUCTION ============"
 if raw_input("If you want to grasp the object press g: ") == 'g' :
+    # IO number 8 activates the suction
+    # First activate IO number for for IO number 8 to work
     monitoring_ios(2,4)
-    rospy.sleep(2)
     monitoring_ios(2,8)
 
 # ====================================================================================================================
@@ -290,6 +237,9 @@ print "============ MOVING plan 5 = 5th POSITION -Return to Approximation point 
 print "When the robot STOPS moving press any key to continue!"
 if raw_input("If you want to EXIT press e: ") == 'e' :
     exit()
-monitoring_ios(3,8)
-monitoring_ios(3,4)
+
+print "============ SUCTION ============"
+if raw_input("If you want to release the object press r: ") == 'r' :
+    monitoring_ios(3,8)
+    monitoring_ios(3,4)
 

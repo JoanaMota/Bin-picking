@@ -1,10 +1,13 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
 import copy
 import rospy
 import math
 from geometry_msgs.msg import Vector3, Pose2D, Pose
 import moveit_commander
 import moveit_msgs.msg
+import roslaunch
 
 
 def generate_plan(group, final_point, number_of_points, q):
@@ -77,11 +80,42 @@ def move_robot(plan, fraction, group):
     print "fraction: ", fraction
     if fraction == 1.0:
         print "planning was successful"
-        print "============ IS PLAN OK??  "
+        print "============ IS PLAN OK?? ⛔ "
         if raw_input("Should I MOVE???? If YES press y!!!!") == 'y' :
             # MOVEMENT
             group.execute(plan)
     else:
         print "planning was not successfull"
+
+def debug_targetspose(uuid,normal,approx_point,eef_position_laser,yaw,pitch):
+    roslaunch.configure_logging(uuid)
+    launch_objDetect_pointTF = roslaunch.parent.ROSLaunchParent(uuid, ["/home/joana/catkin_ws/src/Bin-picking/bin_picking/launch/objDetection_pointTFtranfer.launch"])
+    # Start Launch node objDetection and pointTFtransfer
+    launch_objDetect_pointTF.start()
+
+    print "=== Running node objDetection and pointTFtransfer "
+
+    print "Normal: "
+    print normal
+    print "Approximation Point: "
+    print approx_point
+    print "End-effector Position for laser sensor measurement: "
+    print eef_position_laser
+    print "Euler Angles: "
+    print "yaw: ", yaw, " pitch: ", pitch
+    while raw_input('') != 'a':
+        print "Normal: "
+        print normal
+        print "Approximation Point: "
+        print approx_point
+        print "End-effector Position for laser sensor measurement: "
+        print eef_position_laser
+        print "Euler Angles: "
+        print "yaw: ", yaw, " pitch: ", pitch
+        print "Press A to Confirm Values and Continue!!!!!"
+
+    #Stop Launch node objDetection and pointTFtransfer
+    launch_objDetect_pointTF.shutdown()
+    # after having stopped both nodes the subscribed topics will be the last published and will be a fixed value
 
 
