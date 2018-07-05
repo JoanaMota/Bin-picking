@@ -1,0 +1,827 @@
+#include <ros/ros.h>
+#include <pcl/point_cloud.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/ModelCoefficients.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/filters/extract_indices.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <iostream>
+#include <pcl/io/io.h>
+#include <pcl/io/pcd_io.h>
+
+#include <ros/ros.h>
+#include <sensor_msgs/PointCloud2.h>
+// PCL specific includes
+#include <pcl/ros/conversions.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+
+#include <iostream>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+
+#include <pcl/ModelCoefficients.h>
+#include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/kdtree/kdtree.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/segmentation/extract_clusters.h>
+
+#include <pcl/point_types.h>
+#include <pcl/point_types_conversion.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/search/organized.h>
+#include <pcl/search/kdtree.h>
+#include <pcl/features/normal_3d_omp.h>
+#include <pcl/filters/conditional_removal.h>
+#include <pcl/segmentation/extract_clusters.h>
+
+
+#include <sensor_msgs/PointCloud2.h> //hydro
+#include <tf/transform_datatypes.h>
+#include <tf/transform_listener.h>
+#include <tf/transform_broadcaster.h>
+#include "pcl_ros/transforms.h"
+
+// PCL specific includes
+#include <pcl_conversions/pcl_conversions.h> //hydro
+
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/passthrough.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/kdtree/kdtree_flann.h>
+
+#include <visualization_msgs/Marker.h>
+#include <pcl/filters/crop_box.h>
+#include <pcl/filters/statistical_outlier_removal.h>
+#include <tf_conversions/tf_eigen.h>
+#include <pcl/segmentation/extract_polygonal_prism_data.h>
+#include <pcl/surface/convex_hull.h>
+
+#include <pcl/common/centroid.h>
+#include <pcl/impl/point_types.hpp>
+
+#include <pcl/io/pcd_io.h>
+#include <pcl/search/kdtree.h>
+#include <pcl/segmentation/region_growing_rgb.h>
+ 
+#include <iostream>
+#include <pcl/point_types.h>
+#include <pcl/console/parse.h>
+#include <pcl/visualization/pcl_plotter.h>
+
+#include <pcl/impl/point_types.hpp>
+#include <sensor_msgs/PointCloud2.h>
+// PCL specific includes
+#include <pcl/ros/conversions.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+
+#include <iostream>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+
+#include <Eigen/Dense>
+#include <iostream>
+
+		int cont=0;
+		std::string cloud_topic, world_frame, camera_frame;
+  
+  		Eigen::MatrixXf Final(4,4);
+  		Eigen::MatrixXf xadrez(8,8);
+		Eigen::Vector4f FinalMultiplicacao_Pretas;
+		Eigen::Vector4f FinalMultiplicacao_Brancas;
+		Eigen::Vector4f FinalMultiplicacao_Vermelhas;
+		Eigen::Vector4f FinalMultiplicacao_Azuis;	
+		Eigen::Vector4f centroid;
+  		Eigen::MatrixXf InversoFinal(4,4);
+  		
+class cloudHandler
+{
+public:
+    cloudHandler()
+    {
+        pcl_sub = nh.subscribe("segmented_Pecas_filtradas", 10, &cloudHandler::cloudCB, this);
+        subscriber = nh.subscribe("/camera/rgb/aruco_tracker/transform", 1000, &cloudHandler::positionCallback, this);
+        pcl_pub = nh.advertise<sensor_msgs::PointCloud2>("segmented_Centroides22", 1);
+        ind_pub = nh.advertise<pcl_msgs::PointIndices>("point_indices", 1);
+        coef_pub = nh.advertise<pcl_msgs::ModelCoefficients>("planar_coef", 1);
+    }
+    
+    void ConversaoTabuleiro(Eigen::Vector4f centro)
+    {
+    float primeira_linha = 0.09;/////////////////////////////////////////////////////
+
+    float primeiro_espaco_y = 0.19;
+    float espacamento_y =0.08;
+    
+    float centro_um_primeira_branca = primeiro_espaco_y;
+    float centro_um_segunda_branca = primeiro_espaco_y+espacamento_y;
+    float centro_um_terceira_branca = primeiro_espaco_y+2*espacamento_y;
+    float segunda_linha = 0.15;//////////////////////////////////////////////////////
+    float centro_dois_segunda_branca = primeiro_espaco_y+espacamento_y;
+    float centro_dois_terceira_branca = primeiro_espaco_y+2*espacamento_y;
+    float centro_dois_quarta_branca = primeiro_espaco_y+3*espacamento_y;
+    float terceira_linha = 0.167;//////////////////////////////////////////////////////
+    
+    
+    	if(centro[0] < primeira_linha)//Pertence a linha 1
+    	{
+//			std::cout << "\nEntrei na linha 1\n";
+    			if(centro[1] < centro_um_primeira_branca)
+    			{
+    				std::cout << "\n1A\n";
+    			}else if(centro[1] >= centro_um_primeira_branca && centro[1] < centro_um_segunda_branca)
+    			{
+    				std::cout << "\n1C\n";
+    			}else if(centro[1] >= centro_um_segunda_branca && centro[1] < centro_um_terceira_branca)
+    			{
+    				std::cout << "\n1E\n";
+    			}else if (centro[1] > centro_um_terceira_branca)
+    			{
+    				std::cout << "\n1G\n";
+    			}
+    			//fim da primeira linha
+    	}else if(centro[0] >= primeira_linha && centro[0] < segunda_linha) //Pertence a linha 2
+    	{
+    			if(centro[1] < centro_dois_segunda_branca)
+    			{
+    				std::cout << "\n2B\n";
+    			}else if(centro[1] >= centro_dois_segunda_branca && centro[1] < centro_dois_terceira_branca)
+    			{
+    				std::cout << "\n2D\n";
+    			}else if(centro[1] >= centro_dois_terceira_branca && centro[1] < centro_dois_quarta_branca)
+    			{
+    				std::cout << "\n2F\n";
+    			}else if (centro[1] > centro_dois_quarta_branca)
+    			{
+    				std::cout << "\n2H\n";
+    			}
+    			//fim da segunda linha
+    	}else if(centro[0] >= segunda_linha && centro[0] < terceira_linha) //Pertence a linha 3
+    	{
+    			if(centro[1] < centro_um_primeira_branca)
+    			{
+    				std::cout << "\n3A\n";
+    			}else if(centro[1] >= centro_um_primeira_branca && centro[1] < centro_um_segunda_branca)
+    			{
+    				std::cout << "\n3C\n";
+    			}else if(centro[1] >= centro_um_segunda_branca && centro[1] < centro_um_terceira_branca)
+    			{
+    				std::cout << "\n3E\n";
+    			}else if (centro[1] > centro_um_terceira_branca)
+    			{
+    				std::cout << "\n3G\n";
+    			}
+    			//fim da terceira linha
+    	}
+    }//end da funcao
+    
+    void cloudCB(const sensor_msgs::PointCloud2 &input)
+    {
+    
+    camera_frame="camera_depth_optical_frame";//"/camera_rgb_depth_frame";
+    world_frame="camera_rgb_frame";
+    pcl::PointCloud<pcl::PointXYZRGB> cloud;
+        pcl::PointCloud<pcl::PointXYZHSV> ref;
+        
+    pcl::fromROSMsg(input, cloud);
+	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered0 (new pcl::PointCloud<pcl::PointXYZRGB>);
+	pcl::PointCloud<pcl::PointXYZHSV>::Ptr cloud_filtered1 (new pcl::PointCloud<pcl::PointXYZHSV>);
+	pcl::PointCloud<pcl::PointXYZHSV>::Ptr cloud_brancas (new pcl::PointCloud<pcl::PointXYZHSV>);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_pretas (new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZHSV>::Ptr cloud_vermelhas (new pcl::PointCloud<pcl::PointXYZHSV>);
+	pcl::PointCloud<pcl::PointXYZHSV>::Ptr cloud_azul (new pcl::PointCloud<pcl::PointXYZHSV>);
+  
+      *cloud_filtered0 = cloud;
+      
+  //************************************CONVERTE DE RGB -> HSV**************************************************************************      
+     pcl::PointCloudXYZRGBtoXYZHSV(*cloud_filtered0,*cloud_filtered1);
+for (size_t i = 0; i < cloud_filtered0->points.size(); i++) {
+    cloud_filtered1->points[i].x = cloud_filtered0->points[i].x;
+    cloud_filtered1->points[i].y = cloud_filtered0->points[i].y;
+    cloud_filtered1->points[i].z = cloud_filtered0->points[i].z;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//	std::cout << "\nParte das PRETAS:\n";
+  //**************************************************************************************************************
+  //***********************PARA AS PEÇAS PRETAS***************************************************************************************
+  // Fill in the cloud data PARA A NUVEM PRETAS
+	cloud_pretas->width = cloud_filtered1->width;
+	cloud_pretas->height = cloud_filtered1->height;
+	cloud_pretas->is_dense = false;
+	cloud_pretas->points.resize (cloud_pretas->width * cloud_pretas->height);
+	for (size_t l = 0; l < cloud_filtered1->points.size(); l++) 
+    {
+        if(cloud_filtered1->points[l].h <= 0 || cloud_filtered1->points[l].h >= 0.0001) //todos os numeros FORA do intervalo EmRoda
+        {
+        	if(cloud_filtered1->points[l].s >= 0 && cloud_filtered1->points[l].s <= 1)//todos os numeros dentro de 0-0.25 AoRaio
+        	{
+        		if(cloud_filtered1->points[l].v >= 0 && cloud_filtered1->points[l].v < 0.40)//todos os numeros dentro de 0-0.25 ParaCima
+        		{
+                	cloud_pretas->points[l].x=cloud_filtered1->points[l].x;
+                	cloud_pretas->points[l].y=cloud_filtered1->points[l].y;
+                	cloud_pretas->points[l].z=cloud_filtered1->points[l].z;
+//                	cloud_pretas->points[l].h=cloud_filtered1->points[l].h;
+//                	cloud_pretas->points[l].s=cloud_filtered1->points[l].s;
+//                	cloud_pretas->points[l].v=cloud_filtered1->points[l].v;
+//	        std::cout << "\nNumero de H2="<< cloud_pretas->points[l].h;
+//	        	        std::cout << "\nNumero de S2="<< cloud_pretas->points[l].s;
+//	        	        std::cout << "\nNumero de v2="<< cloud_pretas->points[l].v;
+//            	    std::cout << "BRANCAS has " << cloud_brancas->points.size() << " points.\n";
+//	            		std::cout << "h= " << cloud_brancas->points[l].h;
+//	            		std::cout << "  s= " << cloud_brancas->points[l].s;
+//	            		std::cout << "  v= " << cloud_brancas->points[l].v;
+//                		std::cout << " \n";
+//                		std::cout << " \n";
+	}
+	}
+	}
+    }  
+
+//	pcl::io::savePCDFileASCII("nuvem_pretas0.pcd", *cloud_filtered1);
+	pcl::io::savePCDFileASCII("nuvem_pretas.pcd", *cloud_pretas);
+
+//    //**************************************************************************************************************
+
+  // Creating the KdTree object for the search method of the extraction
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree_pretas (new pcl::search::KdTree<pcl::PointXYZ>);
+  tree_pretas->setInputCloud(cloud_pretas);
+  
+  std::vector<pcl::PointIndices> cluster_indicesPretas;
+  
+  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec_pretas;
+  ec_pretas.setInputCloud (cloud_pretas);
+  ec_pretas.setClusterTolerance (0.030); // 2cm
+  ec_pretas.setMinClusterSize (150);
+  ec_pretas.setMaxClusterSize (450);
+  ec_pretas.setSearchMethod (tree_pretas);
+  ec_pretas.extract (cluster_indicesPretas);
+  
+//  std::vector<sensor_msgs::PointCloud2::Ptr> pc2_clustersPretas;
+//  std::vector<pcl::PointCloud<pcl::PointXYZHSV>::Ptr > clusters;
+  int NumeroPretas = 0;
+      pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_clusterPretas (new pcl::PointCloud<pcl::PointXYZ>);
+      
+      // Fill in the cloud data PARA A NUVEM CLUSTER
+	cloud_clusterPretas->width = cloud_pretas->width;
+	cloud_clusterPretas->height = cloud_pretas->height;
+	cloud_clusterPretas->is_dense = false;
+	cloud_clusterPretas->points.resize (cloud_clusterPretas->width * cloud_clusterPretas->height);
+	
+      //************************************FOR GERAL PARA A SEPARAÇÃO**************************************************************************
+  for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indicesPretas.begin (); it != cluster_indicesPretas.end (); ++it)
+  {
+    for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
+    {
+    cloud_clusterPretas->points.push_back(cloud_pretas->points[*pit]);
+//		cloud_clusterPretas->points[*pit].x=cloud_pretas->points[*pit].x;
+//    	cloud_clusterPretas->points[*pit].y=cloud_pretas->points[*pit].y;
+//    	cloud_clusterPretas->points[*pit].z=cloud_pretas->points[*pit].z;
+    }
+    
+//    std::cout << "Cluster has " << cloud_clusterPretas->points.size() << " points.\n";
+    cloud_clusterPretas->is_dense = true;
+    // Object to store the centroid coordinates.
+	Eigen::Vector4f centroid;
+	pcl::compute3DCentroid(*cloud_clusterPretas, centroid);
+
+ 	centroid[3]=1;
+ 	FinalMultiplicacao_Pretas=InversoFinal*centroid;
+//	std::cout << "The XYZ coordinates of the centroid are: ("
+//			  << centroid[0] << ", "
+//			  << centroid[1] << ", "
+//			  << centroid[2] << ")." << std::endl;
+			  
+	FinalMultiplicacao_Pretas=FinalMultiplicacao_Pretas.array().abs();
+   
+	std::cout << "actualizado PRETAS:\n" << FinalMultiplicacao_Pretas;
+	
+//	ConversaoTabuleiro(FinalMultiplicacao_Pretas);
+	
+    NumeroPretas=NumeroPretas+1;
+    	pcl::io::savePCDFileASCII("nuvem_clusterPretas.pcd", *cloud_clusterPretas);
+    
+  }//FOR,GERAL PRETAS==================================================================================================================
+		std::cout << "\nNumeroPretas TOTAL=======:" << NumeroPretas;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+//	std::cout << "\nParte das BRANCAS:\n";
+  //**************************************************************************************************************
+  //***********************PARA AS PEÇAS BRANCAS***************************************************************************************
+  // Fill in the cloud data PARA A NUVEM BRANCAS
+	cloud_brancas->width = cloud_filtered1->width;
+	cloud_brancas->height = cloud_filtered1->height;
+	cloud_brancas->is_dense = false;
+	cloud_brancas->points.resize (cloud_brancas->width * cloud_brancas->height);
+	for (size_t l = 0; l < cloud_filtered1->points.size(); l++) 
+    {
+        if(cloud_filtered1->points[l].h < 0 || cloud_filtered1->points[l].h > 0.0001) //todos os numeros FORA do intervalo EmRoda
+        {
+        	if(cloud_filtered1->points[l].s >= 0 && cloud_filtered1->points[l].s < 0.10)//todos os numeros dentro de 0-0.25 AoRaio
+        	{
+        		if(cloud_filtered1->points[l].v >= 0.35 && cloud_filtered1->points[l].v < 0.99)//todos os numeros dentro de 0-0.25 ParaCima
+        		{
+                	cloud_brancas->points[l].x=cloud_filtered1->points[l].x;
+                	cloud_brancas->points[l].y=cloud_filtered1->points[l].y;
+                	cloud_brancas->points[l].z=cloud_filtered1->points[l].z;
+                	cloud_brancas->points[l].h=cloud_filtered1->points[l].h;
+                	cloud_brancas->points[l].s=cloud_filtered1->points[l].s;
+                	cloud_brancas->points[l].v=cloud_filtered1->points[l].v;
+//	        std::cout << "\nNumero de H2="<< cloud_pretas->points[l].h;
+//	        	        std::cout << "\nNumero de S2="<< cloud_pretas->points[l].s;
+//	        	        std::cout << "\nNumero de v2="<< cloud_pretas->points[l].v;
+//            	    std::cout << "BRANCAS has " << cloud_brancas->points.size() << " points.\n";
+//	            		std::cout << "h= " << cloud_brancas->points[l].h;
+//	            		std::cout << "  s= " << cloud_brancas->points[l].s;
+//	            		std::cout << "  v= " << cloud_brancas->points[l].v;
+//                		std::cout << " \n";
+//                		std::cout << " \n";
+	}
+	}
+	}
+    }
+//	pcl::io::savePCDFileASCII("nuvem_original.pcd", *cloud_filtered1);
+	pcl::io::savePCDFileASCII("nuvem_brancas.pcd", *cloud_brancas);
+//    //**************************************************************************************************************
+  // Creating the KdTree object for the search method of the extraction
+  pcl::search::KdTree<pcl::PointXYZHSV>::Ptr tree_brancas (new pcl::search::KdTree<pcl::PointXYZHSV>);
+  tree_brancas->setInputCloud(cloud_brancas);
+  
+  std::vector<pcl::PointIndices> cluster_indicesBrancas;
+  
+  pcl::EuclideanClusterExtraction<pcl::PointXYZHSV> ec_Brancas;
+  ec_Brancas.setInputCloud (cloud_brancas);
+  ec_Brancas.setClusterTolerance (0.020); // 2cm
+  ec_Brancas.setMinClusterSize (150);
+  ec_Brancas.setMaxClusterSize (450);
+  ec_Brancas.setSearchMethod (tree_brancas);
+  ec_Brancas.extract (cluster_indicesBrancas);
+
+//  std::vector<sensor_msgs::PointCloud2::Ptr> pc2_clusters;
+//  std::vector<pcl::PointCloud<pcl::PointXYZHSV>::Ptr > clusters;
+  int NumeroBrancas = 0;
+      pcl::PointCloud<pcl::PointXYZHSV>::Ptr cloud_clusterBrancas (new pcl::PointCloud<pcl::PointXYZHSV>);
+      
+      // Fill in the cloud data PARA A NUVEM CLUSTER
+	cloud_clusterBrancas->width = cloud_filtered1->width;
+	cloud_clusterBrancas->height = cloud_filtered1->height;
+	cloud_clusterBrancas->is_dense = false;
+	cloud_clusterBrancas->points.resize (cloud_clusterBrancas->width * cloud_clusterBrancas->height);
+	
+      //************************************FOR GERAL PARA A SEPARAÇÃO**************************************************************************
+  for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indicesBrancas.begin (); it != cluster_indicesBrancas.end (); ++it)
+  {
+
+    for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
+    {
+		cloud_clusterBrancas->points[*pit].x=cloud_brancas->points[*pit].x;
+    	cloud_clusterBrancas->points[*pit].y=cloud_brancas->points[*pit].y;
+    	cloud_clusterBrancas->points[*pit].z=cloud_brancas->points[*pit].z;
+    }
+
+//    std::cout << "Cluster has " << cloud_clusterBrancas->points.size() << " points.\n";
+    
+    // Object to store the centroid coordinates.
+	Eigen::Vector4f centroid;
+	pcl::compute3DCentroid(*cloud_clusterBrancas, centroid);
+
+ 	centroid[3]=1;
+ 	FinalMultiplicacao_Brancas=InversoFinal*centroid;
+//	std::cout << "The XYZ coordinates of the centroid are: ("
+//			  << centroid[0] << ", "
+//			  << centroid[1] << ", "
+//			  << centroid[2] << ")." << std::endl;
+   
+//	std::cout << "actualizado:\n" << FinalMultiplicacao_Brancas;
+    NumeroBrancas=NumeroBrancas+1;
+    	pcl::io::savePCDFileASCII("nuvem_clusterBrancas.pcd", *cloud_clusterBrancas);
+    
+  }//FOR,GERAL PARA AS BRANCAS
+    	std::cout << "\nNumeroBrancas=======:" << NumeroBrancas;
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+//  	std::cout << "\nParte das Vermelhas:\n";
+  //**************************************************************************************************************
+  //***********************PARA AS PEÇAS VERMELHAS***************************************************************************************
+  // Fill in the cloud data PARA A NUVEM VERMELHAS
+	cloud_vermelhas->width = cloud_filtered1->width;
+	cloud_vermelhas->height = cloud_filtered1->height;
+	cloud_vermelhas->is_dense = false;
+	cloud_vermelhas->points.resize (cloud_vermelhas->width * cloud_vermelhas->height);
+	for (size_t l = 0; l < cloud_filtered1->points.size(); l++) 
+    {
+        if(cloud_filtered1->points[l].h < 60 || cloud_filtered1->points[l].h > 300) //todos os numeros FORA do intervalo EmRoda
+        {
+        	if(cloud_filtered1->points[l].s >= 0.20 && cloud_filtered1->points[l].s <= 1)//todos os numeros dentro de 0-0.25 AoRaio
+        	{
+        		if(cloud_filtered1->points[l].v >= 0.35 && cloud_filtered1->points[l].v < 0.99)//todos os numeros dentro de 0-0.25 ParaCima
+        		{
+                	cloud_vermelhas->points[l].x=cloud_filtered1->points[l].x;
+                	cloud_vermelhas->points[l].y=cloud_filtered1->points[l].y;
+                	cloud_vermelhas->points[l].z=cloud_filtered1->points[l].z;
+                	cloud_vermelhas->points[l].h=cloud_filtered1->points[l].h;
+                	cloud_vermelhas->points[l].s=cloud_filtered1->points[l].s;
+                	cloud_vermelhas->points[l].v=cloud_filtered1->points[l].v;
+//	        std::cout << "\nNumero de H2="<< cloud_pretas->points[l].h;
+//	        	        std::cout << "\nNumero de S2="<< cloud_pretas->points[l].s;
+//	        	        std::cout << "\nNumero de v2="<< cloud_pretas->points[l].v;
+//            	    std::cout << "BRANCAS has " << cloud_vermelhas->points.size() << " points.\n";
+//	            		std::cout << "h= " << cloud_vermelhas->points[l].h;
+//	            		std::cout << "  s= " << cloud_vermelhas->points[l].s;
+//	            		std::cout << "  v= " << cloud_vermelhas->points[l].v;
+//                		std::cout << " \n";
+//                		std::cout << " \n";
+	}
+	}
+	}
+    }
+//	pcl::io::savePCDFileASCII("nuvem_original.pcd", *cloud_filtered1);
+	pcl::io::savePCDFileASCII("nuvem_vermelhas.pcd", *cloud_vermelhas);
+//    //**************************************************************************************************************
+  // Creating the KdTree object for the search method of the extraction
+  pcl::search::KdTree<pcl::PointXYZHSV>::Ptr tree_vermelhas (new pcl::search::KdTree<pcl::PointXYZHSV>);
+  tree_vermelhas->setInputCloud(cloud_vermelhas);
+  
+  std::vector<pcl::PointIndices> cluster_indicesvermelhas;
+  
+  pcl::EuclideanClusterExtraction<pcl::PointXYZHSV> ec_vermelhas;
+  ec_vermelhas.setInputCloud (cloud_vermelhas);
+  ec_vermelhas.setClusterTolerance (0.020); // 2cm
+  ec_vermelhas.setMinClusterSize (150);
+  ec_vermelhas.setMaxClusterSize (450);
+  ec_vermelhas.setSearchMethod (tree_vermelhas);
+  ec_vermelhas.extract (cluster_indicesvermelhas);
+  
+
+//  std::vector<sensor_msgs::PointCloud2::Ptr> pc2_clusters;
+//  std::vector<pcl::PointCloud<pcl::PointXYZHSV>::Ptr > clusters;
+  int Numerovermelhas = 0;
+      pcl::PointCloud<pcl::PointXYZHSV>::Ptr cloud_clustervermelhas (new pcl::PointCloud<pcl::PointXYZHSV>);
+      
+      // Fill in the cloud data PARA A NUVEM CLUSTER
+	cloud_clustervermelhas->width = cloud_filtered1->width;
+	cloud_clustervermelhas->height = cloud_filtered1->height;
+	cloud_clustervermelhas->is_dense = false;
+	cloud_clustervermelhas->points.resize (cloud_clustervermelhas->width * cloud_clustervermelhas->height);
+	
+      
+      //************************************FOR GERAL PARA A SEPARAÇÃO**************************************************************************
+  for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indicesvermelhas.begin (); it != cluster_indicesvermelhas.end (); ++it)
+  {
+
+    for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
+    {
+		cloud_clustervermelhas->points[*pit].x=cloud_vermelhas->points[*pit].x;
+    	cloud_clustervermelhas->points[*pit].y=cloud_vermelhas->points[*pit].y;
+    	cloud_clustervermelhas->points[*pit].z=cloud_vermelhas->points[*pit].z;
+    }
+
+//    std::cout << "Cluster has " << cloud_clustervermelhas->points.size() << " points.\n";
+    
+    
+    
+    // Object to store the centroid coordinates.
+	Eigen::Vector4f centroid;
+	pcl::compute3DCentroid(*cloud_clustervermelhas, centroid);
+
+ 	centroid[3]=1;
+ 	FinalMultiplicacao_Vermelhas=InversoFinal*centroid;
+//	std::cout << "The XYZ coordinates of the centroid are: ("
+//			  << centroid[0] << ", "
+//			  << centroid[1] << ", "
+//			  << centroid[2] << ")." << std::endl;
+   
+//	std::cout << "actualizado:\n" << FinalMultiplicacao_Vermelhas;
+    Numerovermelhas=Numerovermelhas+1;
+    	pcl::io::savePCDFileASCII("nuvem_clusterVermelhas.pcd", *cloud_clustervermelhas);
+    
+  }//FOR,GERAL PARA AS VERMELHAS
+
+    std::cout << "\nNumerovermelhas=======:" <<Numerovermelhas;
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+//  	std::cout << "\nParte das AZUL:\n";
+  //**************************************************************************************************************
+  //***********************PARA AS PEÇAS AZUL***************************************************************************************
+  // Fill in the cloud data PARA A NUVEM AZUL
+	cloud_azul->width = cloud_filtered1->width;
+	cloud_azul->height = cloud_filtered1->height;
+	cloud_azul->is_dense = false;
+	cloud_azul->points.resize (cloud_azul->width * cloud_azul->height);
+	for (size_t l = 0; l < cloud_filtered1->points.size(); l++) 
+    {
+        if(cloud_filtered1->points[l].h < 180 || cloud_filtered1->points[l].h > 300) //todos os numeros FORA do intervalo EmRoda
+        {
+        	if(cloud_filtered1->points[l].s >= 0.20 && cloud_filtered1->points[l].s < 1)//todos os numeros dentro de 0-0.25 AoRaio
+        	{
+        		if(cloud_filtered1->points[l].v >= 0.35 && cloud_filtered1->points[l].v < 0.99)//todos os numeros dentro de 0-0.25 ParaCima
+        		{
+                	cloud_azul->points[l].x=cloud_filtered1->points[l].x;
+                	cloud_azul->points[l].y=cloud_filtered1->points[l].y;
+                	cloud_azul->points[l].z=cloud_filtered1->points[l].z;
+                	cloud_azul->points[l].h=cloud_filtered1->points[l].h;
+                	cloud_azul->points[l].s=cloud_filtered1->points[l].s;
+                	cloud_azul->points[l].v=cloud_filtered1->points[l].v;
+//	        std::cout << "\nNumero de H2="<< cloud_pretas->points[l].h;
+//	        	        std::cout << "\nNumero de S2="<< cloud_pretas->points[l].s;
+//	        	        std::cout << "\nNumero de v2="<< cloud_pretas->points[l].v;
+//            	    std::cout << "azul has " << cloud_azul->points.size() << " points.\n";
+//	            		std::cout << "h= " << cloud_azul->points[l].h;
+//	            		std::cout << "  s= " << cloud_azul->points[l].s;
+//	            		std::cout << "  v= " << cloud_azul->points[l].v;
+//                		std::cout << " \n";
+//                		std::cout << " \n";
+	}
+	}
+	}
+    }
+//	pcl::io::savePCDFileASCII("nuvem_original.pcd", *cloud_filtered1);
+	pcl::io::savePCDFileASCII("nuvem_azul.pcd", *cloud_azul);
+//    //**************************************************************************************************************
+  // Creating the KdTree object for the search method of the extraction
+  pcl::search::KdTree<pcl::PointXYZHSV>::Ptr tree_azul (new pcl::search::KdTree<pcl::PointXYZHSV>);
+  tree_azul->setInputCloud(cloud_azul);
+  
+  std::vector<pcl::PointIndices> cluster_indicesazul;
+  
+  pcl::EuclideanClusterExtraction<pcl::PointXYZHSV> ec_azul;
+  ec_azul.setInputCloud (cloud_azul);
+  ec_azul.setClusterTolerance (0.020); // 2cm
+  ec_azul.setMinClusterSize (150);
+  ec_azul.setMaxClusterSize (450);
+  ec_azul.setSearchMethod (tree_azul);
+  ec_azul.extract (cluster_indicesazul);
+
+//  std::vector<sensor_msgs::PointCloud2::Ptr> pc2_clusters;
+//  std::vector<pcl::PointCloud<pcl::PointXYZHSV>::Ptr > clusters;
+  int Numeroazul = 0;
+      pcl::PointCloud<pcl::PointXYZHSV>::Ptr cloud_clusterazul (new pcl::PointCloud<pcl::PointXYZHSV>);
+      
+      // Fill in the cloud data PARA A NUVEM CLUSTER
+	cloud_clusterazul->width = cloud_filtered1->width;
+	cloud_clusterazul->height = cloud_filtered1->height;
+	cloud_clusterazul->is_dense = false;
+	cloud_clusterazul->points.resize (cloud_clusterazul->width * cloud_clusterazul->height);
+	
+      //************************************FOR GERAL PARA A SEPARAÇÃO**************************************************************************
+  for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indicesazul.begin (); it != cluster_indicesazul.end (); ++it)
+  {
+
+    for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
+    {
+		cloud_clusterazul->points[*pit].x=cloud_azul->points[*pit].x;
+    	cloud_clusterazul->points[*pit].y=cloud_azul->points[*pit].y;
+    	cloud_clusterazul->points[*pit].z=cloud_azul->points[*pit].z;
+    }
+
+//    std::cout << "Cluster has " << cloud_clusterazul->points.size() << " points.\n";
+    
+    // Object to store the centroid coordinates.
+	Eigen::Vector4f centroid;
+	pcl::compute3DCentroid(*cloud_clusterazul, centroid);
+
+ 	centroid[3]=1;
+ 	FinalMultiplicacao_Azuis=InversoFinal*centroid;
+//	std::cout << "The XYZ coordinates of the centroid are: ("
+//			  << centroid[0] << ", "
+//			  << centroid[1] << ", "
+//			  << centroid[2] << ")." << std::endl;
+   
+//	std::cout << "actualizado:\n" << FinalMultiplicacao_Azuis;
+    Numeroazul=Numeroazul+1;
+    	pcl::io::savePCDFileASCII("nuvem_clusterazul.pcd", *cloud_clusterazul);
+
+
+    
+  }//FOR,GERAL PARA AS AZUL
+  
+  
+  
+  
+  
+  
+//  clusters.push_back(cloud_cluster);
+//    sensor_msgs::PointCloud2::Ptr tempROSMsg(new sensor_msgs::PointCloud2);
+//    pcl::toROSMsg(*cloud_cluster, *tempROSMsg);
+//    pc2_clusters.push_back(tempROSMsg);
+
+	std::cout << "\nNumeroazul=======:" <<Numeroazul;
+  
+//  	std::cout << "==================================The next===================================" << std::endl;
+  	
+  	
+  	
+////  pc2_clusters.at(0)->header.frame_id=world_frame;
+////  pc2_clusters.at(0)->header.stamp=ros::Time::now();
+////  pcl_pub.publish(pc2_clusters.at(0));
+
+
+	
+
+
+    }//END SUBSCRIVER
+    
+    
+    	void positionCallback(const geometry_msgs::TransformStamped & msgTf)
+	{
+//		ROS_INFO("\n \n NOVO NOVO NOVO NOVO NOVO NOVO NOVO!!!! \n");
+//	 	ROS_INFO("Sequence ID:[%d]",msgTf.header.seq);
+//		ROS_INFO("msg time:[%d,%d]",msgTf.header.stamp.sec,msgTf.header.stamp.nsec);
+//		ROS_INFO("tf[x=%f,y=%f,z=%f]",msgTf.transform.translation.x,msgTf.transform.translation.y,msgTf.transform.translation.z);
+//		ROS_INFO("orientation[x=%f,y=%f,z=%f,w=%f]",msgTf.transform.rotation.x,msgTf.transform.rotation.y,msgTf.transform.rotation.z,msgTf.transform.rotation.w);
+		
+		float Transx = msgTf.transform.translation.x;
+		
+//		std::cout << "\nInformação proveniente em Quaternion. Passar de Quaternion para RPY : \n";
+		
+	  	
+		tf::Quaternion q(msgTf.transform.rotation.x, msgTf.transform.rotation.y, msgTf.transform.rotation.z, msgTf.transform.rotation.w);
+		tf::Matrix3x3 m(q);
+		double roll, pitch, yaw;
+		m.getRPY(roll, pitch, yaw);
+
+//		std::cout << "\nRoll: " << roll << ", Pitch: " << pitch << ", Yaw: " << yaw << std::endl;
+
+		Eigen::AngleAxisd rollAngle(roll, Eigen::Vector3d::UnitZ());
+		Eigen::AngleAxisd yawAngle(yaw, Eigen::Vector3d::UnitX());
+		Eigen::AngleAxisd pitchAngle(pitch, Eigen::Vector3d::UnitY());
+
+		Eigen::Quaternion<double> q1 = rollAngle * pitchAngle * yawAngle;
+
+		Eigen::Matrix3d rotationMatrix = q1.matrix();
+//		std::cout << "\n Passar informação de RPY para matriz de rotação 3x3  : \n";
+		
+//		std::cout << "\n rotationMatrix==\n" << rotationMatrix;
+	
+		 Eigen::MatrixXf Final(4,4);
+		 Final << rotationMatrix(0,0), 		rotationMatrix(0,1), 		rotationMatrix(0,2), 		msgTf.transform.translation.x,
+		 		  rotationMatrix(1,0),		rotationMatrix(1,1),		rotationMatrix(1,2),		msgTf.transform.translation.y,
+		 		  rotationMatrix(2,0),		rotationMatrix(2,1),		rotationMatrix(2,2),		msgTf.transform.translation.z,
+		 		  0,						0,							0,							1;
+
+
+//		 Eigen::MatrixXf Final(4,4);
+//		 Final << 1, 		0, 		0, 		msgTf.transform.translation.x,
+//		 		  0,		0,		-1,		msgTf.transform.translation.y,
+//		 		  0,		1,		0,		msgTf.transform.translation.z,
+//		 		  0,		0,		0,							1;
+
+		 
+//		 std::cout << "\nFinalCamera==\n" << Final;
+
+	InversoFinal=Final.inverse();
+		 
+//		 std::cout << "\nThe inverse of FinalCamera:\n" << Final.inverse();
+//		 		 std::cout << "\nPUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU:\n" << InversoFinal;
+	}
+
+protected:
+    ros::NodeHandle nh;
+    ros::Subscriber subscriber;
+    ros::Subscriber pcl_sub;
+    ros::Publisher pcl_pub, ind_pub, coef_pub;
+};
+
+main(int argc, char **argv)
+{
+    ros::init(argc, argv, "pcl_planar_centroides");
+
+    cloudHandler handler;
+
+    ros::spin();
+
+    return 0;
+}
+
+

@@ -1,0 +1,22 @@
+<launch>
+
+	<!-- Load the parameters file -->
+	<rosparam command="load" file="$(find r_platform)/params/default.yaml"/>
+
+
+	 <!-- joy node -->
+  	<node respawn="true" pkg="joy"
+        type="joy_node" name="joy_node" >
+    	<param name="dev" type="string" value="/dev/input/js0" />
+    	<param name="deadzone" value="0.12" />
+	<param name="autorepeat_rate" value="20" />
+  	</node>
+
+
+	<node pkg="r_platform" type="r_teleop" name="r_teleop" />
+	<node pkg="r_platform" type="decompose_vel" name="decompose_vel" />
+	<node pkg="r_platform" type="r_pointgrey_FL3_28S4" name="r_pointgrey_FL3_28S4" />
+	<node pkg="r_platform" type="r_exp_results" name="r_exp_results" />
+
+</launch>
+

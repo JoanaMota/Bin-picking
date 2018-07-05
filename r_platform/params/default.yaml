@@ -1,0 +1,15 @@
+port: 50000
+ip: "192.168.0.10"
+mode: "-e"
+
+
+msg_freq: 20
+wheel_radius: 0.128
+# base_length: 0.55
+base_length: 0.59
+pulses_1turn: 8024
+lin_const: 0.06
+ang_const: 0.08
+
+
+

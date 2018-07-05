@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+
+<robot
+	xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- include the laser xacro -->
+ <xacro:include filename="$(find r_platform)/urdf/hokuyo.urdf.xacro"/>
+ <xacro:include filename="$(find r_platform)/urdf/odom_description.urdf.xacro"/>
+
+	<!-- macro defining the whole robot -->
+	<xacro:macro name="r_platform" params="prefix">
+
+		<xacro:odom_wheel prefix="head_wheel" />
+		<xacro:hokuyo_laser prefix="head_laser" />
+
+		<joint name ="${prefix}_joint" type="fixed">
+    		<origin xyz="0 0 0.05" rpy="0 0 0" />
+        	<parent link="head_wheel_base_link" />
+        	<child link="head_laser_base_link" />
+    	</joint>
+
+    </xacro:macro>
+
+
+
+
+</robot>

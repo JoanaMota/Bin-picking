@@ -23,7 +23,6 @@ int ReadPortUntilChar(int fd)
         if( n == -1 ) continue;   //perror("Err:");
         sprintf(distance_laser,"%s%c",distance_laser,ch);
     } while( ch != '\n');       //Reads until a paragraph is found
-    counter++;
     return 0;
 }
 
@@ -51,18 +50,21 @@ int main (int argc, char** argv)
         std_msgs::Float32 dist; 
         ReadPortUntilChar(fd);                  //Reads the distance given by the Arduino UNO
         dist.data = atof(distance_laser);
-        cout << "Distance=" << dist.data << endl; 
+        if (dist.data > 100.0 && dist.data < 600.0)
+        {
+            cout << "Distance=" << dist.data << endl; 
+            
+            readings.push_back(dist.data);
+            counter++;
+            
+        }
         distance_laser[0] = '\0';
-        
-        readings.push_back(dist.data);
-        // pub_rs232.publish(dist_average);
-        
-        
-        // ros::spinOnce();
         loop_rate.sleep();
     }
     
-    float average = accumulate( readings.begin(), readings.end(), 0.0)/readings.size();              
+    float average = accumulate(readings.begin(), readings.end(), 0.0)/readings.size();          
+
+    cout << "The size is: " << readings.size() << endl; 
     cout << "The average is: " << average << endl; 
     std_msgs::Float32 dist_average; 
     dist_average.data = average;

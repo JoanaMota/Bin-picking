@@ -1,0 +1,21 @@
+#Request message type
+#[segundo/Posicaoo]: position
+#[segundo/Orientacaoo]: orientation
+#float64 x
+#---
+#Response message type
+#string confirmacao
+
+int64[7] linha0
+int64[7] linha1
+int64[7] linha2
+int64[7] linha3
+int64[7] linha4
+int64[7] linha5
+int64[7] linha6
+int64[7] linha7
+
+---
+int32 origem
+int32 destino
+int32 remover

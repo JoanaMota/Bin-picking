@@ -63,11 +63,12 @@ def generate_plan(group, final_point, number_of_points, q):
                                 0.01,        # eef_step 
                                 0.0)         # jump_threshold 
 
+    # input the correct timestamp of time_from_start for each point in the waypoints array
     for i in range(len(plan.joint_trajectory.points)-1):
         plan.joint_trajectory.points[i].time_from_start = rospy.Time.now() + plan.joint_trajectory.points[i].time_from_start
     
     print "=== Waiting while RVIZ displays plan..."
-    rospy.sleep(5)
+    # rospy.sleep(5)
 
     return plan, fraction
 

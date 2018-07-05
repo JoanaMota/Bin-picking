@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<robot name="r_platform" 
+    xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:include filename="$(find r_platform)/urdf/r_platform_macro.urdf.xacro"/>
+    <xacro:r_platform prefix="" />
+</robot>

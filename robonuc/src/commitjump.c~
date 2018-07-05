@@ -1,0 +1,117 @@
+/*
+ *  commitjump.c
+ *  hello
+ *
+ *  Created by Aron Allen on 25/10/09.
+ *  Copyright 2009 __MyCompanyName__. All rights reserved.
+ *
+ */
+#include "../include/main.h"
+
+int makeJump(int jumpNumber, PGAME game, int n){
+	
+	if ((*game).mjCount == 0 || jumpNumber > (*game).mjCount){
+/*		printf("entrei no if do makeJump\n");//teste*/
+		printf("error, jumpCount: %d passedJump: %d, making random jump instead\n",(*game).mjCount,jumpNumber);
+		if ((*game).mjCount) {
+			jumpNumber = rand()%(*game).mjCount;
+/*			printf("jumpNumber ====== %d\n", jumpNumber);// teste*/
+		}else {
+			printf("no jumps, something is really wrong\n");
+			return;
+		}
+
+	}
+	
+	if ((*game).turn == 'w'){
+		
+		//Remove King if any
+		if ((*game).mjs[jumpNumber].removePieces & (*game).kings & (*game).black){
+			(*game).kings = (*game).kings & ~(*game).mjs[jumpNumber].removePieces;
+			if(n==1 && (*game).turn != (player)){			
+				remover = printBitboard((*game).mjs[jumpNumber].removePieces);//ver qual a peça a remover
+/*				printf("remover ======== %d\n", remover);*/
+		}
+		}
+		//Remove Enemy
+		(*game).black = (*game).black & ~(*game).mjs[jumpNumber].removePieces;
+		if(n==1 && (*game).turn != (player)){			
+			remover = printBitboard((*game).mjs[jumpNumber].removePieces);//ver qual a peça a remover
+/*			printf("remover ======== %d\n", remover);*/
+		}
+		//Move King, if any
+		if ((*game).mjs[jumpNumber].intermediates[0] & (*game).kings & (*game).white){		
+			(*game).kings = (*game).kings ^ ((*game).mjs[jumpNumber].intermediates[0] | (*game).mjs[jumpNumber].intermediatePosistions[(*game).mjs[jumpNumber].intermediates]);
+			if(n==1 && (*game).turn != (player)){
+	/*			printf("mover peça de makeJump\n");*/
+				origem = printBitboard((*game).mjs[jumpNumber].intermediates[0]);
+/*				printf("origem\n");*/
+/*				printf("%d \n", origem);*/
+				destino = printBitboard((*game).mjs[jumpNumber].intermediatePosistions[(*game).mjs[jumpNumber].intermediates]);
+/*				printf("destino\n");	*/
+/*				printf("%d \n", destino);*/
+			}	
+		}
+		//Move Piece		
+		(*game).white = (*game).white ^ ((*game).mjs[jumpNumber].intermediates[0] | (*game).mjs[jumpNumber].intermediatePosistions[(*game).mjs[jumpNumber].intermediates]);
+		if(n==1 && (*game).turn != (player)){
+/*			printf("mover peça de makeJump\n");*/
+			origem = printBitboard(((*game).mjs[jumpNumber].intermediates[0]));
+/*			printf("origem\n");*/
+/*			printf("%d \n", origem);*/
+			destino = printBitboard((*game).mjs[jumpNumber].intermediatePosistions[(*game).mjs[jumpNumber].intermediates]);
+/*			printf("destino\n");	*/
+/*			printf("%d \n", destino);*/
+		}
+		
+	}
+
+	if ((*game).turn == 'b'){
+		
+		//Remove King if any
+		if ((*game).mjs[jumpNumber].removePieces & (*game).kings & (*game).white){
+			(*game).kings = (*game).kings & ~(*game).mjs[jumpNumber].removePieces;
+			if(n==1 && (*game).turn == ~(player)){			
+				remover = printBitboard((*game).mjs[jumpNumber].removePieces);//ver qual a peça a remover
+/*				printf("remover ======== %d\n", remover);*/
+			}
+		}
+		//Remove Enemy
+		(*game).white = (*game).white & ~(*game).mjs[jumpNumber].removePieces;
+		if(n==1 && (*game).turn == ~(player)){			
+			remover = printBitboard((*game).mjs[jumpNumber].removePieces);//ver qual a peça a remover
+/*			printf("remover ======== %d\n", remover);*/
+		}
+		
+		//Move King, if any
+		if ((*game).mjs[jumpNumber].intermediates[0] & (*game).kings & (*game).black){		
+			(*game).kings = (*game).kings ^ ((*game).mjs[jumpNumber].intermediates[0] | (*game).mjs[jumpNumber].intermediatePosistions[(*game).mjs[jumpNumber].intermediates]);
+			if(n==1 && (*game).turn == ~(player)){
+	/*			printf("mover peça de makeJump\n");*/
+				origem = printBitboard(((*game).mjs[jumpNumber].intermediates[0]));
+	/*			printf("origem\n");*/
+/*				printf("%d \n", origem);*/
+				destino = printBitboard((*game).mjs[jumpNumber].intermediatePosistions[(*game).mjs[jumpNumber].intermediates]);
+	/*			printf("destino\n");	*/
+/*				printf("%d \n", destino);*/
+			}	
+		}
+		//Move Piece		
+		(*game).black = (*game).black ^ ((*game).mjs[jumpNumber].intermediates[0] | (*game).mjs[jumpNumber].intermediatePosistions[(*game).mjs[jumpNumber].intermediates]);	
+		if(n==1 && (*game).turn == ~(player)){
+/*			printf("mover peça de makeJump\n");*/
+			origem = printBitboard(((*game).mjs[jumpNumber].intermediates[0]));
+/*			printf("origem\n");*/
+/*			printf("%d \n", origem);*/
+			destino = printBitboard((*game).mjs[jumpNumber].intermediatePosistions[(*game).mjs[jumpNumber].intermediates]);
+/*			printf("destino\n");	*/
+/*			printf("%d \n", destino);*/
+		}
+		
+	}
+	
+	
+	
+
+
+}

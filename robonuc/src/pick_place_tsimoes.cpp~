@@ -1,0 +1,1046 @@
+
+////******************************************************************************************************
+  // Todos os includes
+////******************************************************************************************************
+
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <geometric_shapes/solid_primitive_dims.h>
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit_msgs/DisplayTrajectory.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/planning_scene/planning_scene.h>
+
+
+//----------------------------------------
+#include <ros/ros.h>
+#include <moveit/move_group_interface/move_group.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit_msgs/DisplayTrajectory.h>
+#include <moveit_msgs/AttachedCollisionObject.h>
+#include <moveit_msgs/CollisionObject.h>
+#include <iostream>
+//###############Includes para o grupo do inverse kinematic
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/planning_scene/planning_scene.h>
+//#include <moveit/joint_model_group.h>
+#include <moveit_msgs/AttachedCollisionObject.h>
+#include <moveit_msgs/CollisionObject.h>
+#include <ros/ros.h>
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit_msgs/DisplayTrajectory.h>
+//###############Includes para o grupo do inverse kinematic
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+//#include <moveit/joint_model_group.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit_msgs/DisplayTrajectory.h>
+#include <moveit_msgs/AttachedCollisionObject.h>
+#include <moveit_msgs/CollisionObject.h>
+
+#include <boost/function.hpp>
+#include <boost/assign/list_of.hpp>
+#include <boost/assert.hpp>
+#include <math.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
+//#include <moveit_cartesian_plan_plugin/generate_cartesian_path.h>
+#include <geometry_msgs/PoseArray.h>
+//#include "damas_hsv/Posicao.h"
+#include	<iostream>
+#include	<sstream>
+
+////******************************************************************************************************
+  // Todos os includes
+////******************************************************************************************************
+#include <ros/ros.h>
+// MoveIt!
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/robot_state.h>
+#include <geometry_msgs/Pose.h>
+#include <moveit_msgs/PlanningScene.h>
+#include <moveit_msgs/AttachedCollisionObject.h>
+#include <moveit_msgs/GetStateValidity.h>
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit/robot_state/conversions.h>
+#include <pluginlib/class_loader.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit_msgs/DisplayTrajectory.h>
+#include <eigen_conversions/eigen_msg.h>
+#include <sensor_msgs/JointState.h>
+#include <tf/transform_broadcaster.h>
+//#include <moveit/joint_model_group.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit_msgs/CollisionObject.h>
+#include <iostream>
+#include <moveit_msgs/GetPositionIK.h>
+
+#include "std_msgs/String.h"
+
+#include <std_msgs/Int8.h>
+#include <industrial_trajectory_filters/filter_base.h>
+#include <industrial_trajectory_filters/uniform_sample_filter.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <damas_hsv/conjunto.h> // TODO: Uncomment this line
+
+static const std::string ROBOT_DESCRIPTION="robot_description";
+
+void approach_pick(moveit::planning_interface::MoveGroup &group,double x,double y, double z);
+void pick(moveit::planning_interface::MoveGroup &group,double x,double y, double z);
+void approach_place(moveit::planning_interface::MoveGroup &group,double x,double y,double z);
+void place(moveit::planning_interface::MoveGroup &group,double x,double y,double z);
+void posicao_seguranca_1(moveit::planning_interface::MoveGroup &group,double x,double y, double z);
+void posicao_seguranca_2(moveit::planning_interface::MoveGroup &group,double x,double y, double z);
+
+int mover;
+
+class cloudHandler
+{
+public:
+//====================================================================================================================================================
+//****************************************************************************************************************************************************
+// Função que é responsavel por invocar tópicos ROS
+//****************************************************************************************************************************************************
+//====================================================================================================================================================
+    cloudHandler()
+    {
+//        sub = nh.subscribe("/camera/rgb/image_color", 1000, &cloudHandler::cloudCB, this);
+//        client = nh.serviceClient<damas_hsv::Path_Posit>("tabuleiro1");
+////        pub = nh.advertise<sensor_msgs::Image>("pcl_filtredy_rgb", 1);
+//        subscriber = nh.subscribe("/camera/rgb/aruco_tracker/transform", 1000, &cloudHandler::positionCallback, this);
+//        pub_posicao = nh.advertise<damas_hsv::Posicao>("position", 1000); // TODO: Uncomment this line
+
+	  pub_co = nh.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
+	  pub_aco1 = nh.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 10);
+	  subscriber = nh.subscribe("allposition", 1000, &cloudHandler::positionCallback, this);
+  	  subscriber_teclado = nh.subscribe("chatter", 1000, &cloudHandler::ReceberTeclado, this);
+    }
+
+
+void ReceberTeclado (const std_msgs::Int8 msg)
+{
+	std::cout << "\nmsg,msg,msg"<<msg.data;
+	mover=msg.data;
+	std::cout << "\nmover"<<mover;
+}
+
+
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+  // approach_pick, que faz o ponto de aproximação para o pick
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+void posicao_seguranca_1(moveit::planning_interface::MoveGroup &group,double x,double y, double z)
+{
+
+	//group.asyncMove ();
+  	 group.setEndEffectorLink("tool0");
+  	 	group.setPlannerId("RRTConnectkConfigDefault");//SBLkConfigDefault
+  	 	
+	group.setPlanningTime(0);
+	
+	unsigned int num_planning_attempts=0;
+	group.setNumPlanningAttempts (num_planning_attempts);
+	
+	double tolerance=15;
+	group.setGoalJointTolerance (tolerance);
+	
+  std::vector<moveit_msgs::Grasp> grasps;
+
+  geometry_msgs::PoseStamped p;
+  p.header.frame_id = "base_link";
+//  p.pose.position.x = x;
+//  p.pose.position.y = y;
+//  p.pose.position.z = z;
+//  p.pose.orientation.x = 0;
+//  p.pose.orientation.y = 0;
+//  p.pose.orientation.z = 0;
+//  p.pose.orientation.w = 1;
+  
+  // We can plan a motion for this group to a desired pose for the 
+  // end-effector.
+  geometry_msgs::Pose target_pose1;
+  geometry_msgs::Pose target_pose2;
+  geometry_msgs::Pose target_pose3;
+
+	 // Orientation
+    double angle =M_PI/2;
+    Eigen::Quaterniond quat(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::UnitX()));
+    
+    
+    std::cout << "\nx==="<<quat.x();
+        std::cout << "\ny==="<<quat.y();
+            std::cout << "\nz==="<<quat.z();
+                std::cout << "\nw==="<<quat.w();
+    
+	 target_pose1.position.x = x;
+	 target_pose1.position.y = y;
+	 target_pose1.position.z = z;
+    target_pose1.orientation.x = quat.x();
+    target_pose1.orientation.y = quat.y();
+    target_pose1.orientation.z = quat.z();
+    target_pose1.orientation.w = quat.w();
+    
+//    half_angle = M_PI;
+//    q.x = axis.x * sin(half_angle);
+//    q.y = axis.y * sin(half_angle);
+//    q.z = axis.z * sin(half_angle);
+//    q.w = cos(half_angle)    ;
+
+//    angle = M_PI;
+//    Eigen::Quaterniond quat1(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::UnitY()));
+//    target_pose2.position.x=target_pose1.position.x;
+//	target_pose2.position.y = target_pose1.position.y;
+//	target_pose2.position.z = target_pose1.position.z;
+//	target_pose2.orientation.x = quat1.x();
+//    target_pose2.orientation.y = quat1.y();
+//    target_pose2.orientation.z = quat1.z();
+//    target_pose2.orientation.w = quat1.w();
+//    
+//        target_pose3.position.x=target_pose2.position.x;
+//	target_pose3.position.y = target_pose2.position.y;
+//	target_pose3.position.z = target_pose2.position.z;
+//	target_pose3.orientation.x = quat.x();
+//    target_pose3.orientation.y = quat.y();
+//    target_pose3.orientation.z = quat.z();
+//    target_pose3.orientation.w = quat.w();
+//	 
+
+	p.pose.position.x = x;
+	p.pose.position.y = y;
+	p.pose.position.z = z;
+ 	p.pose.orientation.x = quat.x();
+    p.pose.orientation.y = quat.y();
+    p.pose.orientation.z = quat.z();
+    p.pose.orientation.w = quat.w();
+//  
+    group.setPoseTarget(target_pose1);
+//    group.setPoseTarget(target_pose2);
+//    group.setPoseTarget(target_pose3);
+//    group.setPoseTarget(p);
+  
+  
+  // Now, we call the planner to compute the plan
+  // and visualize it.
+  // Note that we are just planning, not asking move_group 
+  // to actually move the robot.
+  moveit::planning_interface::MoveGroup::Plan my_plan88;
+  bool success = group.plan(my_plan88);
+
+  ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");  
+    /* Sleep to give Rviz time to visualize the plan. */
+//  sleep(1.0);
+  
+//  	group.asyncExecute(my_plan);
+    group.move();
+//    group.execute(my_plan1);
+}
+
+
+
+
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+  // approach_pick, que faz o ponto de aproximação para o pick
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+void posicao_seguranca_2(moveit::planning_interface::MoveGroup &group,double x,double y, double z)
+{
+
+//	//group.asyncMove ();
+//  	 group.setEndEffectorLink("tool0");
+//  	 	group.setPlannerId("RRTConnectkConfigDefault");//SBLkConfigDefault
+//  	 	
+//	group.setPlanningTime(0);
+//	
+//	unsigned int num_planning_attempts=0;
+//	group.setNumPlanningAttempts (num_planning_attempts);
+//	
+//	double tolerance=30;
+//	group.setGoalJointTolerance (tolerance);
+	
+  std::vector<moveit_msgs::Grasp> grasps;
+
+  geometry_msgs::PoseStamped p;
+  p.header.frame_id = "base_link";
+//  p.pose.position.x = x;
+//  p.pose.position.y = y;
+//  p.pose.position.z = z;
+//  p.pose.orientation.x = 0;
+//  p.pose.orientation.y = 0;
+//  p.pose.orientation.z = 0;
+//  p.pose.orientation.w = 1;
+  
+  // We can plan a motion for this group to a desired pose for the 
+  // end-effector.
+  geometry_msgs::Pose target_pose1;
+  geometry_msgs::Pose target_pose2;
+//  geometry_msgs::Pose target_pose3;
+
+	 // Orientation
+    double angle =M_PI;
+    Eigen::Quaterniond quat(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::UnitZ()));
+    
+	 target_pose1.position.x = x;
+	 target_pose1.position.y = y;
+	 target_pose1.position.z = z;
+    target_pose1.orientation.x = quat.x();
+    target_pose1.orientation.y = quat.y();
+    target_pose1.orientation.z = quat.z();
+    target_pose1.orientation.w = quat.w();
+    
+    
+    
+    angle =M_PI;
+    Eigen::Quaterniond quat1(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::UnitY()));
+    target_pose2.position.x=target_pose1.position.x;
+	target_pose2.position.y = target_pose1.position.y;
+	target_pose2.position.z = target_pose1.position.z;
+	target_pose2.orientation.x = quat1.x();
+    target_pose2.orientation.y = quat1.y();
+    target_pose2.orientation.z = quat1.z();
+    target_pose2.orientation.w = quat1.w();
+	 
+
+	p.pose.position.x = x;
+	p.pose.position.y = y;
+	p.pose.position.z = z;
+ 	p.pose.orientation.x = quat1.x();
+    p.pose.orientation.y = quat1.y();
+    p.pose.orientation.z = quat1.z();
+    p.pose.orientation.w = quat1.w();
+  
+    group.setPoseTarget(target_pose1);
+    group.setPoseTarget(target_pose2);
+    group.setPoseTarget(p);
+  
+  
+  // Now, we call the planner to compute the plan
+  // and visualize it.
+  // Note that we are just planning, not asking move_group 
+  // to actually move the robot.
+  moveit::planning_interface::MoveGroup::Plan my_plan99;
+  bool success = group.plan(my_plan99);
+
+  ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");  
+    /* Sleep to give Rviz time to visualize the plan. */
+//  sleep(1.0);
+  
+//  	group.asyncExecute(my_plan);
+    group.move();
+//    group.execute(my_plan1);
+}
+
+
+
+
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+  // approach_pick, que faz o ponto de aproximação para o pick
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+void approach_pick(moveit::planning_interface::MoveGroup &group,double x,double y, double z)
+{
+//group.asyncMove ();
+//  	 group.setEndEffectorLink("tool0");
+//  	 	group.setPlannerId("RRTConnectkConfigDefault");//SBLkConfigDefault
+//  	 	
+//	group.setPlanningTime(0);
+//	
+//	unsigned int num_planning_attempts=0;
+//	group.setNumPlanningAttempts (num_planning_attempts);
+//	
+//	double tolerance=30;
+//	group.setGoalJointTolerance (tolerance);
+	
+  std::vector<moveit_msgs::Grasp> grasps;
+
+  geometry_msgs::PoseStamped p;
+  p.header.frame_id = "base_link";
+//  p.pose.position.x = x;
+//  p.pose.position.y = y;
+//  p.pose.position.z = z;
+//  p.pose.orientation.x = 0;
+//  p.pose.orientation.y = 0;
+//  p.pose.orientation.z = 0;
+//  p.pose.orientation.w = 1;
+  
+  // We can plan a motion for this group to a desired pose for the 
+  // end-effector.
+  geometry_msgs::Pose target_pose1;
+  geometry_msgs::Pose target_pose2;
+  geometry_msgs::Pose target_pose3;
+
+	 // Orientation
+    double angle =M_PI;
+    Eigen::Quaterniond quat(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::UnitZ()));
+    
+	 target_pose1.position.x = x;
+	 target_pose1.position.y = y;
+	 target_pose1.position.z = z;
+    target_pose1.orientation.x = quat.x();
+    target_pose1.orientation.y = quat.y();
+    target_pose1.orientation.z = quat.z();
+    target_pose1.orientation.w = quat.w();
+    
+    
+    
+    angle =M_PI;
+    Eigen::Quaterniond quat1(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::UnitY()));
+    target_pose2.position.x=target_pose1.position.x;
+	target_pose2.position.y = target_pose1.position.y;
+	target_pose2.position.z = target_pose1.position.z;
+	target_pose2.orientation.x = quat1.x();
+    target_pose2.orientation.y = quat1.y();
+    target_pose2.orientation.z = quat1.z();
+    target_pose2.orientation.w = quat1.w();
+    
+//        angle =M_PI;
+//    Eigen::Quaterniond quat2(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::Unitz()));
+    target_pose3.position.x=target_pose2.position.x;
+	target_pose3.position.y = target_pose2.position.y;
+	target_pose3.position.z = target_pose2.position.z;
+	target_pose3.orientation.x = quat.x();
+    target_pose3.orientation.y = quat.y();
+    target_pose3.orientation.z = quat.z();
+    target_pose3.orientation.w = quat.w();
+	 
+
+	p.pose.position.x = x;
+	p.pose.position.y = y;
+	p.pose.position.z = z;
+ 	p.pose.orientation.x = quat1.x();
+    p.pose.orientation.y = quat1.y();
+    p.pose.orientation.z = quat1.z();
+    p.pose.orientation.w = quat1.w();
+  
+    group.setPoseTarget(target_pose1);
+    group.setPoseTarget(target_pose2);
+    group.setPoseTarget(target_pose3);
+    group.setPoseTarget(p);
+  
+  
+  // Now, we call the planner to compute the plan
+  // and visualize it.
+  // Note that we are just planning, not asking move_group 
+  // to actually move the robot.
+  moveit::planning_interface::MoveGroup::Plan my_plan1;
+  bool success = group.plan(my_plan1);
+
+  ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");  
+    /* Sleep to give Rviz time to visualize the plan. */
+//  sleep(1.0);
+  
+//  	group.asyncExecute(my_plan);
+    group.move();
+//    group.execute(my_plan1);
+    
+}
+
+
+
+
+
+
+
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+  // pick, pick do objecto
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+void pick(moveit::planning_interface::MoveGroup &group,double x,double y, double z)
+{
+//group.asyncMove ();
+  	group.setEndEffectorLink("tool0");
+  	group.setPlannerId("RRTConnectkConfigDefault");//SBLkConfigDefault
+  	 	
+	group.setPlanningTime(0);
+	
+	unsigned int num_planning_attempts=0;
+	group.setNumPlanningAttempts (num_planning_attempts);
+	
+	double tolerance=30;
+	group.setGoalJointTolerance (tolerance);
+	
+  	std::vector<moveit_msgs::Grasp> grasps;
+
+ 	 geometry_msgs::PoseStamped p;
+ 		 p.header.frame_id = "base_link";
+//  p.pose.position.x = x;
+//  p.pose.position.y = y;
+//  p.pose.position.z = z;
+//  p.pose.orientation.x = 0;
+//  p.pose.orientation.y = 0;
+//  p.pose.orientation.z = 0;
+//  p.pose.orientation.w = 1;
+  
+  // We can plan a motion for this group to a desired pose for the 
+  // end-effector.
+  geometry_msgs::Pose target_pose1;
+  geometry_msgs::Pose target_pose2;
+//  geometry_msgs::Pose target_pose3;
+
+	 // Orientation
+    double angle =M_PI;
+    Eigen::Quaterniond quat(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::UnitZ()));
+    
+	 target_pose1.position.x = x;
+	 target_pose1.position.y = y;
+	 target_pose1.position.z = z;
+    target_pose1.orientation.x = quat.x();
+    target_pose1.orientation.y = quat.y();
+    target_pose1.orientation.z = quat.z();
+    target_pose1.orientation.w = quat.w();
+    
+    
+    
+    angle =M_PI;
+    Eigen::Quaterniond quat1(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::UnitY()));
+    target_pose2.position.x=target_pose1.position.x;
+	target_pose2.position.y = target_pose1.position.y;
+	target_pose2.position.z = target_pose1.position.z;
+	target_pose2.orientation.x = quat1.x();
+    target_pose2.orientation.y = quat1.y();
+    target_pose2.orientation.z = quat1.z();
+    target_pose2.orientation.w = quat1.w();
+	 
+
+	p.pose.position.x = x;
+	p.pose.position.y = y;
+	p.pose.position.z = z;
+ 	p.pose.orientation.x = quat1.x();
+    p.pose.orientation.y = quat1.y();
+    p.pose.orientation.z = quat1.z();
+    p.pose.orientation.w = quat1.w();
+  
+    group.setPoseTarget(target_pose1);
+    group.setPoseTarget(target_pose2);
+    group.setPoseTarget(p);
+  
+  
+  // Now, we call the planner to compute the plan
+  // and visualize it.
+  // Note that we are just planning, not asking move_group 
+  // to actually move the robot.
+  moveit::planning_interface::MoveGroup::Plan my_plan2;
+  bool success = group.plan(my_plan2);
+
+  ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");  
+    /* Sleep to give Rviz time to visualize the plan. */
+//  sleep(1.0);
+  
+  
+  
+//  	group.asyncExecute(my_plan2);
+    group.move();
+//    group.execute(my_plan2);  
+
+
+  group.setSupportSurfaceName("table");
+}
+
+
+
+
+
+
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+  // approach_place, que faz o ponto de aproximação para o place
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+void approach_place(moveit::planning_interface::MoveGroup &group,double x,double y,double z)
+{
+//group.asyncMove ();
+
+ group.setEndEffectorLink("tool0");
+  	 	group.setPlannerId("RRTConnectkConfigDefault");//SBLkConfigDefault
+  	 	
+	group.setPlanningTime(0);
+	
+	unsigned int num_planning_attempts=0;
+	group.setNumPlanningAttempts (num_planning_attempts);
+	
+	double tolerance=30;
+	group.setGoalJointTolerance (tolerance);
+	
+  std::vector<moveit_msgs::Grasp> grasps;
+
+  geometry_msgs::PoseStamped p;
+  p.header.frame_id = "base_link";
+//  p.pose.position.x = x;
+//  p.pose.position.y = y;
+//  p.pose.position.z = z;
+//  p.pose.orientation.x = 0;
+//  p.pose.orientation.y = 0;
+//  p.pose.orientation.z = 0;
+//  p.pose.orientation.w = 1;
+  
+  // We can plan a motion for this group to a desired pose for the 
+  // end-effector.
+  geometry_msgs::Pose target_pose1;
+  geometry_msgs::Pose target_pose2;
+//  geometry_msgs::Pose target_pose3;
+
+	 // Orientation
+    double angle =M_PI;
+    Eigen::Quaterniond quat(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::UnitZ()));
+    
+	 target_pose1.position.x = x;
+	 target_pose1.position.y = y;
+	 target_pose1.position.z = z;
+    target_pose1.orientation.x = quat.x();
+    target_pose1.orientation.y = quat.y();
+    target_pose1.orientation.z = quat.z();
+    target_pose1.orientation.w = quat.w();
+    
+    
+    
+    angle =M_PI;
+    Eigen::Quaterniond quat1(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::UnitY()));
+    target_pose2.position.x=target_pose1.position.x;
+	target_pose2.position.y = target_pose1.position.y;
+	target_pose2.position.z = target_pose1.position.z;
+	target_pose2.orientation.x = quat1.x();
+    target_pose2.orientation.y = quat1.y();
+    target_pose2.orientation.z = quat1.z();
+    target_pose2.orientation.w = quat1.w();
+	 
+
+	p.pose.position.x = x;
+	p.pose.position.y = y;
+	p.pose.position.z = z;
+ 	p.pose.orientation.x = quat1.x();
+    p.pose.orientation.y = quat1.y();
+    p.pose.orientation.z = quat1.z();
+    p.pose.orientation.w = quat1.w();
+  
+    group.setPoseTarget(target_pose1);
+    group.setPoseTarget(target_pose2);
+    group.setPoseTarget(p);
+  
+  
+  // Now, we call the planner to compute the plan
+  // and visualize it.
+  // Note that we are just planning, not asking move_group 
+  // to actually move the robot.
+  moveit::planning_interface::MoveGroup::Plan my_plan3;
+  bool success = group.plan(my_plan3);
+
+  ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");  
+    /* Sleep to give Rviz time to visualize the plan. */
+//  sleep(1.0);
+  
+//  	group.asyncExecute(my_plan3);
+    group.move();
+//    group.execute(my_plan3);    
+
+}
+
+
+
+
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+  // place, place do objecto
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+void place(moveit::planning_interface::MoveGroup &group,double x,double y,double z)
+{
+//group.asyncMove ();
+
+ group.setEndEffectorLink("tool0");
+  	 	group.setPlannerId("RRTConnectkConfigDefault");//SBLkConfigDefault
+	group.setPlanningTime(0);
+	
+	unsigned int num_planning_attempts=0;
+	group.setNumPlanningAttempts (num_planning_attempts);
+	
+	double tolerance=30;
+	group.setGoalJointTolerance (tolerance);
+	
+  std::vector<moveit_msgs::Grasp> grasps;
+
+  geometry_msgs::PoseStamped p;
+  p.header.frame_id = "base_link";
+//  p.pose.position.x = x;
+//  p.pose.position.y = y;
+//  p.pose.position.z = z;
+//  p.pose.orientation.x = 0;
+//  p.pose.orientation.y = 0;
+//  p.pose.orientation.z = 0;
+//  p.pose.orientation.w = 1;
+  
+  // We can plan a motion for this group to a desired pose for the 
+  // end-effector.
+  geometry_msgs::Pose target_pose1;
+  geometry_msgs::Pose target_pose2;
+//  geometry_msgs::Pose target_pose3;
+
+	 // Orientation
+    double angle =M_PI;
+    Eigen::Quaterniond quat(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::UnitZ()));
+    
+	 target_pose1.position.x = x;
+	 target_pose1.position.y = y;
+	 target_pose1.position.z = z;
+    target_pose1.orientation.x = quat.x();
+    target_pose1.orientation.y = quat.y();
+    target_pose1.orientation.z = quat.z();
+    target_pose1.orientation.w = quat.w();
+    
+    
+    
+    angle =M_PI;
+    Eigen::Quaterniond quat1(Eigen::AngleAxis<double>(double(angle), Eigen::Vector3d::UnitY()));
+    target_pose2.position.x=target_pose1.position.x;
+	target_pose2.position.y = target_pose1.position.y;
+	target_pose2.position.z = target_pose1.position.z;
+	target_pose2.orientation.x = quat1.x();
+    target_pose2.orientation.y = quat1.y();
+    target_pose2.orientation.z = quat1.z();
+    target_pose2.orientation.w = quat1.w();
+	 
+
+	p.pose.position.x = x;
+	p.pose.position.y = y;
+	p.pose.position.z = z;
+ 	p.pose.orientation.x = quat1.x();
+    p.pose.orientation.y = quat1.y();
+    p.pose.orientation.z = quat1.z();
+    p.pose.orientation.w = quat1.w();
+  
+    group.setPoseTarget(target_pose1);
+    group.setPoseTarget(target_pose2);
+    group.setPoseTarget(p);
+  
+  
+  // Now, we call the planner to compute the plan
+  // and visualize it.
+  // Note that we are just planning, not asking move_group 
+  // to actually move the robot.
+  moveit::planning_interface::MoveGroup::Plan my_plan4;
+  bool success = group.plan(my_plan4);
+
+  ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");  
+    /* Sleep to give Rviz time to visualize the plan. */
+//  sleep(1.0);
+  
+//  	group.asyncExecute(my_plan);
+    group.move();
+//    group.execute(my_plan4);
+
+}
+
+
+
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+  // Função que recebe as coordenadas de cada posição e envia para o robô
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+void positionCallback(const damas_hsv::conjunto pose)
+{
+
+if(mover==1)
+{
+        std::clock_t start;
+    double duration;
+
+    start = std::clock();
+    
+	  moveit::planning_interface::MoveGroup group("manipulator");
+	  
+	  	 group.setEndEffectorLink("tool0");
+	  
+	//  group.setPlanningTime(5.0);
+
+	  moveit_msgs::CollisionObject co;
+	  co.header.stamp = ros::Time::now();
+	  co.header.frame_id = "base_link";
+
+	  
+	   // remove pole
+	  co.id = "table";
+	  co.operation = moveit_msgs::CollisionObject::REMOVE;
+	  pub_co.publish(co);
+	//ROS_INFO("ERRO AQUI!! 1111111111111111111.\n");
+	////////////  // add pole
+	  co.operation = moveit_msgs::CollisionObject::ADD;
+	  co.primitives.resize(1);
+	  co.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+	  co.primitives[0].dimensions.resize(geometric_shapes::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
+	  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.900;
+	  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 1.250;
+	  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.035;
+	  co.primitive_poses.resize(1);
+	  co.primitive_poses[0].position.x = 0.355;
+	  co.primitive_poses[0].position.y = 0;
+	  co.primitive_poses[0].position.z = -0.0176;
+	  co.primitive_poses[0].orientation.w = 0;
+	  pub_co.publish(co);
+
+
+
+		co.id = "part1";
+		  co.operation = moveit_msgs::CollisionObject::REMOVE;
+		  pub_co.publish(co);
+		 
+		  moveit_msgs::AttachedCollisionObject aco1;
+		  aco1.object = co;
+		  pub_aco1.publish(aco1);
+		  co.operation = moveit_msgs::CollisionObject::ADD;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.120;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.350;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.100;
+		  co.primitive_poses[0].position.x = 0.500;
+		  co.primitive_poses[0].position.y = 0.000;
+		  co.primitive_poses[0].position.z = 0.800;
+		  pub_co.publish(co);
+		  
+		  	co.id = "barra_dir";
+		  co.operation = moveit_msgs::CollisionObject::REMOVE;
+		  pub_co.publish(co);
+		  moveit_msgs::AttachedCollisionObject aco2;
+		  aco1.object = co;
+		  pub_aco1.publish(aco2);
+		  co.operation = moveit_msgs::CollisionObject::ADD;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.0600;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.0300;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 1.350;
+		  co.primitive_poses[0].position.x = 0.775;
+		  co.primitive_poses[0].position.y = -0.640;
+		  co.primitive_poses[0].position.z = 0.6400;
+		  pub_co.publish(co);
+		  
+	    co.id = "barra_robo";
+		  co.operation = moveit_msgs::CollisionObject::REMOVE;
+		  pub_co.publish(co);
+		  moveit_msgs::AttachedCollisionObject aco22;
+		  aco1.object = co;
+		  pub_aco1.publish(aco22);
+		  co.operation = moveit_msgs::CollisionObject::ADD;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.0600;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.0300;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 1.350;
+		  co.primitive_poses[0].position.x = -0.010;
+		  co.primitive_poses[0].position.y = -0.165;
+		  co.primitive_poses[0].position.z = 0.6400;
+		  pub_co.publish(co);
+		  
+	  	  co.id = "barra_esq";
+		  co.operation = moveit_msgs::CollisionObject::REMOVE;
+		  pub_co.publish(co);
+		  moveit_msgs::AttachedCollisionObject aco3;
+		  aco1.object = co;
+		  pub_aco1.publish(aco3);
+		  co.operation = moveit_msgs::CollisionObject::ADD;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.0600;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.0300;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 1.350;
+		  co.primitive_poses[0].position.x = 0.775;
+		  co.primitive_poses[0].position.y = 0.640;
+		  co.primitive_poses[0].position.z = 0.6400;
+		  pub_co.publish(co);
+		  
+		  co.id = "barra_cima";
+		  co.operation = moveit_msgs::CollisionObject::REMOVE;
+		  pub_co.publish(co);
+		  moveit_msgs::AttachedCollisionObject aco4;
+		  aco1.object = co;
+		  pub_aco1.publish(aco4);
+		  co.operation = moveit_msgs::CollisionObject::ADD;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.0600;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 1.280;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.030;
+		  co.primitive_poses[0].position.x = -0.010;
+		  co.primitive_poses[0].position.y = -0.165;
+		  co.primitive_poses[0].position.z = 0.750;
+		  pub_co.publish(co);
+		  
+		  		  co.id = "barra_ciima";
+		  co.operation = moveit_msgs::CollisionObject::REMOVE;
+		  pub_co.publish(co);
+		  moveit_msgs::AttachedCollisionObject aco44;
+		  aco1.object = co;
+		  pub_aco1.publish(aco44);
+		  co.operation = moveit_msgs::CollisionObject::ADD;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.0600;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 1.280;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.030;
+		  co.primitive_poses[0].position.x = 0.775;
+		  co.primitive_poses[0].position.y = 0.000;
+		  co.primitive_poses[0].position.z = 0.900;
+		  pub_co.publish(co);
+		  
+		  co.id = "barra_kin";
+		  co.operation = moveit_msgs::CollisionObject::REMOVE;
+		  pub_co.publish(co);
+		  moveit_msgs::AttachedCollisionObject aco5;
+		  aco1.object = co;
+		  pub_aco1.publish(aco5);
+		  co.operation = moveit_msgs::CollisionObject::ADD;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.400;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.030;
+		  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.030;
+		  co.primitive_poses[0].position.x = 0.675;
+		  co.primitive_poses[0].position.y = 0.000;
+		  co.primitive_poses[0].position.z = 0.900+0.030;
+		  pub_co.publish(co);
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		float origem_x = pose.origem.x;
+		float origem_y = pose.origem.y;
+		float origem_z = pose.origem.z;
+	
+		float destino_x = pose.destino.x;
+		float destino_y = pose.destino.y;
+		float destino_z = pose.destino.z;
+	
+		float remover_x;
+		float remover_y;
+		float remover_z;
+	
+		if(pose.remover.x != 99)
+		{
+			remover_x = pose.remover.x;
+			remover_y = pose.remover.y;
+			remover_z = pose.remover.z;
+		}
+	//	float destino_recebida = pose.destino;
+	//	float remover_recebida = pose.remover;
+	  	
+		std::cout<<"New positionxxxx:\n"<<origem_x;
+		std::cout<<"New positionyyyy:\n"<<origem_y;
+		std::cout<<"New positionzzz:\n"<<origem_z;
+	//    std::count<<""<<origem_x;
+		
+	//    moveit::planning_interface::MoveGroup group("manipulator");
+	  	moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+
+
+		
+		
+		
+		
+		
+		
+	posicao_seguranca_2(group,0.350,0.500,0.200);
+		sleep(5);
+	ROS_INFO("Inicio pick\n");
+		approach_pick(group,origem_x,origem_y,0.240);
+	//	sleep(5);
+			   	 pick(group,origem_x,origem_y,0.1315);
+	//		   	 	sleep(5);
+		approach_pick(group,origem_x,origem_y,0.200);
+		ROS_INFO("Fim PICK\n");
+	//	sleep(5);
+
+		ROS_INFO("Inicio place\n");
+		approach_place(group,destino_x,destino_y,0.200);
+	//		sleep(5);
+				 place(group,destino_x,destino_y,0.132);//132
+	//			 	sleep(5);
+		approach_place(group,destino_x,destino_y,0.240);
+		ROS_INFO("Fim PLACE\n");
+		sleep(2);
+		std::cout<<"\npose.remover.x ="<<pose.remover.x;	
+		std::cout<<"\npose.remover.y ="<<pose.remover.y;	
+
+		if(pose.remover.x != 99)
+		if(pose.remover.y != 99)
+		{
+			ROS_INFO("Inicio pick\n");
+			std::cout<<"\nentrei aqui 2222222222222222 ##########################################################################\n";
+			approach_place(group,remover_x,remover_y,0.240);
+	//			sleep(5);
+					 place(group,remover_x,remover_y,0.1315);
+	//				 	sleep(5);
+			approach_place(group,remover_x,remover_y,0.240);
+			ROS_INFO("Fim pick\n");
+				sleep(2);
+		}
+	//	
+		posicao_seguranca_2(group,0.350,0.500,0.200);
+			ROS_INFO("POSICAO ATINGIDA!!!!");
+//			exit(1);
+	mover=0;
+	
+		 	duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+
+    std::cout<<"printf: "<< duration <<'\n';
+}
+}
+
+
+
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+  // approach_pick, que faz o ponto de aproximação para o pick
+//**********************************************************************************************************************************************************************
+//**********************************************************************************************************************************************************************
+protected:
+//    ros::NodeHandle nh;
+//    ros::Subscriber sub;
+//    ros::Publisher pub;
+//    ros::Subscriber subscriber;
+//    ros::ServiceClient client;
+//    ros::Publisher pub_posicao;
+  ros::NodeHandle nh;
+  ros::Publisher pub_co;
+  ros::Publisher pub_aco1;
+  ros::Subscriber subscriber;
+  
+   ros::Subscriber subscriber_teclado;
+};
+
+
+
+
+//******************************************************************************************************
+//******************************************************************************************************
+//MAIN
+//******************************************************************************************************
+//******************************************************************************************************
+int main(int argc, char **argv)
+{
+  ros::init (argc, argv, "pick_place_tsimoes");
+
+    ros::AsyncSpinner spinner(1);
+  spinner.start();
+  
+     cloudHandler handler;
+
+    ros::spin();
+
+    return 0;
+//////  ROS_INFO("Inicio pick\n");
+////////	posicao_seguranca_1(group,0.000,0.400,0.400);
+////////	posicao_seguranca_2(group,0.200,-0.400,0.350);
+////////	posicao_seguranca_2(group,0.340,0.000,0.350);
+//////	
+////////		  approach_pick(group,0.508,0.001,0.300);
+////////  		           pick(group,0.330,-0.200,0.150); //posicao à mão1111
+//////// 		           pick(group,0.633137,-0.139882,0.150); //posicao à mão2222
+//////// 		           sleep(15);
+////// 		           	posicao_seguranca_2(group,0.200,-0.400,0.300);
+////////  		  approach_pick(group,0.508,0.001,0.300);
+//////  		  
+////////  	posicao_seguranca_2(group,0.340,0.000,0.400);
+////////  	
+////////	     approach_place(group,0.350,0.000,0.300);
+////////		  		  place(group,0.350,0.000,0.300);
+////////		  approach_place(group,0.350,0.000,0.300);
+//////		  
+////////	posicao_seguranca_2(group,0.340,0.000,0.400);
+////////	posicao_seguranca_1(group,0.150,0.400,0.400);
+
+//////  sleep(4.0);
+////////  ros::waitForShutdown();
+//////  return 0;
+}
+

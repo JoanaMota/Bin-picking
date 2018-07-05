@@ -1,0 +1,29 @@
+<launch>
+
+	<arg name="safety" default="true" doc="Use Laser Range Finder for safety?" />
+	<arg name="laserb" default="true" doc="Use Laser0 (Forward) for safety?" />
+	<arg name="laserf" default="true" doc="Use Laser1 (Backward) for safety?" />
+
+	<param name="/robonuc_safety" value="1" type="str" />
+	<param name="/safetyl0" value="1" type="str" />
+	<param name="/safetyl1" value="1" type="str" />
+
+	<group unless="$(arg safety)">
+		<param name="/robonuc_safety" value="0" type="str" />
+	</group>
+	
+	<group unless="$(arg laserf)">
+		<param name="/safetyl0" value="0" type="str" />
+	</group>
+
+	<group unless="$(arg laserb)">
+		<param name="/safetyl1" value="0" type="str" />
+	</group>
+
+
+	<node pkg="robonuc" type="vs_keyboard" name="vs_keyboard" output="screen"/>	
+	<node pkg="robonuc" type="vs_fanuc_client" name="vs_fanuc_client" output="screen"/>
+	<node pkg="robonuc" type="vs_IO_client" name="vs_IO_client" output="screen"/>
+
+
+</launch>

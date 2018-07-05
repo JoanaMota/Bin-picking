@@ -1,0 +1,12 @@
+<launch>
+	<!-- Load the parameters file -->
+
+	<!-- joy node -->
+	<node respawn="true" pkg="joy" type="joy_node" name="joy_node">
+		<param name="dev" type="string" value="/dev/input/js0" />
+		<param name="deadzone" value="0.12" />
+		<param name="autorepeat_rate" value="20" />
+	</node>
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find teb_local_planner_tutorials)/cfg/rviz_navigation.rviz"/>
+
+</launch>

@@ -49,6 +49,12 @@ io_pub = rospy.Publisher(
                         ios,
                         queue_size = 10)
 
+print "============ Waiting for RVIZ..."
+print "============ Starting movement "
+print "============ Reference frame: %s" % group.get_planning_frame()
+print "============ Name of the end-effector link: %s" % group.get_end_effector_link()
+print "============ Robot Groups: %s" %robot.get_group_names()
+
 normal = Vector3()
 approx_point = Vector3()
 eef_position_laser = Vector3()
@@ -89,6 +95,9 @@ def callback_laser_sensor(output_laser_reading):
 rospy.Subscriber("/targets_pose", TargetsPose, callback_targets_pose)
 rospy.Subscriber("/output_laser_sensor", Float32, callback_laser_sensor)
 
+# if raw_input("If you want to go through the hole process press a: ") == 'a' :
+
+print "============ Generating plan 1 = 1st POSITION - Visualize Workspace  ============"
 group.set_planning_time(10.0)
 group.set_planner_id("RRTConnectkConfigDefault")
 
@@ -99,12 +108,20 @@ visualization_point.z = 0.440
 
 # Quaternions of the Euler angles
 quaternion_init = quaternion_from_euler(-np.pi, 0, roll)
+# quaternion_init = quaternion_from_euler(-160*np.pi/180, -7.53*np.pi/180, roll)
+print "The quaternion representation is %s %s %s %s." % (quaternion_init[0], quaternion_init[1], quaternion_init[2], quaternion_init[3])
 
 # GENERATING PLAN
 plan1, fraction1 = generate_plan(group, visualization_point, 5, quaternion_init)
 
 # MOVEMENT
 move_robot(plan1, fraction1, group)
+
+print "============ MOVING plan 1 = 1st POSITION - Visualize Workspace  ============"
+print "When the robot STOPS moving press any key to continue!"
+if raw_input("If you want to EXIT press e: ") == 'e' :
+    exit()
+
 
 # Launch objDetection and pointTFtransfer nodes
 uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
@@ -113,14 +130,67 @@ launch_objDetect_pointTF = roslaunch.parent.ROSLaunchParent(uuid, ["/home/joana/
 # Start Launch node objDetection and pointTFtransfer
 launch_objDetect_pointTF.start()
 
-rospy.sleep(15.)
+print "=== Running node objDetection and pointTFtransfer "
+
+print "Normal: "
+print normal
+print "Approximation Point: "
+print approx_point
+print "End-effector Position for laser sensor measurement: "
+print eef_position_laser
+print "Euler Angles: "
+print "yaw: ", yaw.data, " pitch: ", pitch.data
+while raw_input('') != 'a':
+    print "Normal: "
+    print normal
+    print "Approximation Point: "
+    print approx_point
+    print "End-effector Position for laser sensor measurement: "
+    print eef_position_laser
+    print "Euler Angles: "
+    print "yaw: ", yaw.data, " pitch: ", pitch.data
+    print "Press A to Confirm Values and Continue!!!!!"
 
 #Stop Launch node objDetection and pointTFtransfer
 launch_objDetect_pointTF.shutdown()
 # after having stopped both nodes the subscribed topics will be the last published and will be a fixed value
 
+if raw_input("Are the points OK ??? If NOT press n to relaunch !!!") == 'n' :
+    # Launch objDetection and pointTFtransfer nodes
+    uuid2 = roslaunch.rlutil.get_or_generate_uuid(None, False)
+    roslaunch.configure_logging(uuid2)
+    launch_objDetect_pointTF2 = roslaunch.parent.ROSLaunchParent(uuid2, ["/home/joana/catkin_ws/src/Bin-picking/bin_picking/launch/objDetection_pointTFtranfer.launch"])
+    launch_objDetect_pointTF2.start()
+    print "=== Running node objDetection and pointTFtransfer "
+
+    # WAIT for "a" to be pressed
+    print "Normal: "
+    print normal
+    print "Approximation Point: "
+    print approx_point
+    print "End-effector Position for laser sensor measurement: "
+    print eef_position_laser
+    print "Euler Angles: "
+    print "yaw: ", yaw.data, " pitch: ", pitch.data
+    while raw_input('') != 'a':
+        print "Normal: "
+        print normal
+        print "Approximation Point: "
+        print approx_point
+        print "End-effector Position for laser sensor measurement: "
+        print eef_position_laser
+        print "Euler Angles: "
+        print "yaw: ", yaw.data, " pitch: ", pitch.data
+        print "Press A to Confirm Values and Continue!!!!!"
+
+    #Stop Launch node objDetection and pointTFtransfer
+    launch_objDetect_pointTF2.shutdown()
+    
+print "============ Generating plan 2 = 2nd POSITION - Measure with laser sensor ============"   
+
 # Quaternions of the Euler angles
 quaternion = quaternion_from_euler( roll, math.radians(-pitch.data), math.radians(-yaw.data), 'rzyx')
+print "The quaternion representation is %s %s %s %s." % (quaternion[0], quaternion[1], quaternion[2], quaternion[3])
 
 # GENERATING PLAN
 plan2, fraction2 = generate_plan(group, eef_position_laser, 5, quaternion)
@@ -128,15 +198,35 @@ plan2, fraction2 = generate_plan(group, eef_position_laser, 5, quaternion)
 # MOVING
 move_robot(plan2, fraction2, group)
 
+print "============ MOVING plan 2 = 2nd POSITION - Measure with laser sensor ============"
+print "When the robot STOPS moving press ENTER to continue!"
+if raw_input("If you want to EXIT press e: ") == 'e' :
+    exit()
+
 uuid3 = roslaunch.rlutil.get_or_generate_uuid(None, False)
 roslaunch.configure_logging(uuid3)
 launch_sensorRS232 = roslaunch.parent.ROSLaunchParent(uuid3, ["/home/joana/catkin_ws/src/Bin-picking/bin_picking/launch/sensorRS232.launch"])
 # Start Launch node sensorRS232
 launch_sensorRS232.start()
 
+print "=== Running node sensorRS232 "
+print "If no value appear is because of Error. Could not open port!!"
+
+print "Wait for reading average..."
 rospy.sleep(11.)
+print "Laser Reading: "
+print laser_reading.data
+while raw_input('') != 'b':
+    print "Laser Reading: "
+    print laser_reading.data
+    print "Press B to Canfirm value and continue!!!!!"
+
 # Stop Launch node sensorRS232
 launch_sensorRS232.shutdown()
+
+print "============ Generating plan 3 = 3rd POSITION - Approximation point  ============"    
+
+print "=== Calculating Grasping point... "
 
 laser_reading_float = laser_reading.data
 
@@ -146,6 +236,7 @@ grasping_point.x = approx_point.x + laser_reading_float.data * 0.001 * normal.x
 grasping_point.y = approx_point.y + laser_reading_float.data * 0.001 * normal.y
 grasping_point.z = approx_point.z + laser_reading_float.data * 0.001 * normal.z
 
+print " ==== Grasping Point ===="
 print grasping_point
 
 # Creating and publishing a PointStamped of the grasping point for visualization
@@ -157,25 +248,48 @@ grasping_point_ps.point.z = grasping_point.z
 
 grasping_point_pub.publish(grasping_point_ps)
 
+print "Confirm Grasping Point!!!"
+raw_input()
+
 # GENERATING PLAN
 plan3, fraction3 = generate_plan(group, approx_point, 5, quaternion)
 
 # MOVING
 move_robot(plan3, fraction3, group)
+print "============ MOVING plan 3 = 3rd POSITION - Approximation point ============"
+print "When the robot STOPS moving press any key to continue!"
+if raw_input("If you want to EXIT press e: ") == 'e' :
+    exit()
 
+print "============ Generating plan 4 = 4th POSITION - Grasping point  ============"    
 # GENERATING PLAN
 plan4, fraction4 = generate_plan(group, grasping_point, 5, quaternion)
 
 # MOVING
 move_robot(plan4, fraction4, group)
-exit()
+print "============ MOVING plan 4 = 4th POSITION - Grasping point ============"
+print "When the robot STOPS moving press any key to continue!"
+if raw_input("If you want to EXIT press e: ") == 'e' :
+    exit()
+
+print "============ SUCTION ============"
+if raw_input("If you want to grasp the object press g: ") == 'g' :
+    monitoring_ios(2,4)
+    rospy.sleep(2)
+    monitoring_ios(2,8)
 
 # ====================================================================================================================
-
-monitoring_ios(2,8)
-
+print "============ Generating plan 5 = 5th POSITION -Return to Approximation point  ============"    
 # GENERATING PLAN 5
 plan5, fraction5 = generate_plan(group, approx_point, 5, quaternion)
 
 # MOVING
 move_robot(plan5, fraction5, group)
+
+print "============ MOVING plan 5 = 5th POSITION -Return to Approximation point  ============"    
+print "When the robot STOPS moving press any key to continue!"
+if raw_input("If you want to EXIT press e: ") == 'e' :
+    exit()
+monitoring_ios(3,8)
+monitoring_ios(3,4)
+

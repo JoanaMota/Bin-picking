@@ -153,6 +153,8 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        approx_point_tf:
+          Value: true
         camera_depth_frame:
           Value: false
         camera_depth_optical_frame:
@@ -165,6 +167,8 @@ Visualization Manager:
           Value: false
         eef_base_link:
           Value: false
+        eef_pose:
+          Value: true
         eef_tool_tip:
           Value: true
         ls_base_link:
@@ -198,6 +202,9 @@ Visualization Manager:
       Show Names: false
       Tree:
         robot_base_link:
+          approx_point_tf:
+            eef_pose:
+              {}
           robot_base:
             {}
           robot_link_1:
@@ -266,8 +273,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 0.423028678
-        Min Value: 0.423028678
+        Max Value: 0.499044299
+        Min Value: 0.499044299
         Value: true
       Axis: X
       Channel Name: intensity
@@ -366,10 +373,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: -0.0747950524
+      Pitch: -0.0797950551
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.00354623795
+      Yaw: 0.718546331
     Saved: ~
 Window Geometry:
   Displays:

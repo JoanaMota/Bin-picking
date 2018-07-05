@@ -1,0 +1,52 @@
+#include <ros/ros.h>
+#include <sensor_msgs/PointCloud2.h>
+// PCL specific includes
+#include <pcl/ros/conversions.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+
+#include <iostream>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+
+ros::Publisher pub;
+int aaa=0;
+
+void
+cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
+{
+
+	// Convert the sensor_msgs/PointCloud2 data to pcl/PointCloud
+   pcl::PointCloud<pcl::PointXYZRGB> cloud;
+   pcl::fromROSMsg (*input, cloud);
+
+if(aaa==50)
+{
+pcl::io::savePCDFileASCII ("nuvem_novaa.pcd", cloud);
+std::cerr << "Saved data points to test_pcd.pcd." << std::endl;
+}
+aaa=aaa+1;
+  //sensor_msgs::PointCloud2 output;
+  // Publish the data
+  //pub.publish (output);
+}
+
+int
+main (int argc, char** argv)
+{
+  // Initialize ROS
+  ros::init (argc, argv, "cloud");
+  ros::NodeHandle nh;
+	std::cerr << "AAA" << std::endl;
+	//aaa = *argv[0];
+  // Create a ROS subscriber for the input point cloud
+  ros::Subscriber sub = nh.subscribe ("pcl_segmented2_rgb", 1, cloud_cb);
+
+  // Create a ROS publisher for the output point cloud
+  //pub = nh.advertise<sensor_msgs::PointCloud2> ("output", 1);
+
+  // Spin
+  ros::spin ();
+}

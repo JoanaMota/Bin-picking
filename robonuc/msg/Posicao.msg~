@@ -1,0 +1,6 @@
+# A goal Position: X,Y,Z and Orientation
+#x_msgs Point position
+#float64[3] position
+float64 origem
+float64 destino
+float64 remover

@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hokuyo">
+
+	<xacro:macro name="odom_wheel" params="prefix">
+
+		<link name ="${prefix}_base_link">
+			<visual>
+				<origin xyz="0 0 0.12" rpy="0 ${pi/2} 0"/>
+				<geometry>
+					<cylinder length="0.48" radius="0.06"/>
+        		</geometry>
+        		<material name ="LightGrey">
+        			<color rgba="0.83 0.83 0.83 1.0"/>
+        		</material>
+        	</visual>
+        </link>
+
+        <link name ="${prefix}_wheel">
+        	<visual>
+        		<origin xyz="0 0 0.12" rpy="0 ${pi/2} 0"/>
+        		<geometry>
+        			<cylinder length="0.06" radius="0.12"/>
+        		</geometry>
+        		<material name ="LightGrey">
+        			<color rgba="0.83 0.83 0.83 1.0"/>
+        		</material>
+			</visual>
+        </link>
+
+        <joint name="${prefix}_base_link_to_${prefix}_left_wheel" type="fixed">
+        	<origin xyz="-0.24 0 0" rpy="0 0 0"/>
+        	<parent link="${prefix}_base_link"/>
+        	<child link="${prefix}_wheel"/>
+        </joint>
+    </xacro:macro>
+</robot>

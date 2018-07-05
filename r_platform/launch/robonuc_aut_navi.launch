@@ -1,0 +1,11 @@
+<launch>
+
+	<!-- Load the parameters file -->
+	<rosparam command="load" file="$(find r_platform)/params/default.yaml"/>
+
+	<!-- call the nodes -->
+	<node pkg="r_platform" type="r_pointgrey_FL3_28S4" name="r_pointgrey_FL3_28S4" />
+	<node pkg="r_platform" type="r_image_process" name="r_image_process" />
+	<node pkg="r_platform" type="decompose_vel" name="decompose_vel" />
+
+</launch>

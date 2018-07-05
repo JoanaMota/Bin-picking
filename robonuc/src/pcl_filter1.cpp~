@@ -1,0 +1,60 @@
+#include <ros/ros.h>
+#include <pcl/point_cloud.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl/filters/statistical_outlier_removal.h>
+#include <pcl/filters/radius_outlier_removal.h>
+
+class cloudHandler
+{
+public:
+    cloudHandler()
+    {
+        pcl_sub = nh.subscribe("segmented_Pecas", 10, &cloudHandler::cloudCB, this);
+        pcl_pub = nh.advertise<sensor_msgs::PointCloud2>("segmented_Pecas_filtradas", 1);
+    }
+
+    void cloudCB(const sensor_msgs::PointCloud2& input)
+    {
+        pcl::PointCloud<pcl::PointXYZRGB> cloud;
+        pcl::PointCloud<pcl::PointXYZRGB> cloud_filtered;
+
+        pcl::fromROSMsg(input, cloud);
+        
+        
+
+	// Filter object. Outlier removal Radius-based
+	pcl::RadiusOutlierRemoval<pcl::PointXYZRGB> filter;
+	filter.setInputCloud(cloud.makeShared());
+	// Every point must have 10 neighbors within 15cm, or it will be removed.
+	filter.setRadiusSearch(0.010);//mm
+	filter.setMinNeighborsInRadius(40);
+
+//        pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> statFilter;
+//        statFilter.setInputCloud(cloud.makeShared());
+//        statFilter.setMeanK(2);
+//        statFilter.setStddevMulThresh(0.002);
+        filter.filter(cloud_filtered);
+
+        sensor_msgs::PointCloud2 output;
+        pcl::toROSMsg(cloud_filtered, output);
+        pcl_pub.publish(output);
+    }
+
+protected:
+    ros::NodeHandle nh;
+    ros::Subscriber pcl_sub;
+    ros::Publisher pcl_pub;
+};
+
+main(int argc, char** argv)
+{
+    ros::init(argc, argv, "pcl_filter_pecas3");
+
+    cloudHandler handler;
+
+    ros::spin();
+
+    return 0;
+}
+

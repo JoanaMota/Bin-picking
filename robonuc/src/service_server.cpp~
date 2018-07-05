@@ -1,0 +1,801 @@
+/**
+ ** Simple ROS Publisher Node
+ **/
+#include <ros/ros.h>
+#include <moveit/move_group_interface/move_group.h>
+//#include <primeiro/PathPosition.h> // TODO: Uncomment this line
+#include <moveit/move_group_interface/move_group.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit_msgs/DisplayTrajectory.h>
+
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/planning_scene/planning_scene.h>
+
+#include <moveit_msgs/AttachedCollisionObject.h>
+#include <moveit_msgs/CollisionObject.h>
+//#include	"ros/ros.h"
+#include "damas_hsv/Path_Posit.h"
+#include <iostream>
+#include <sstream>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+
+extern "C" {
+	#include "../include/main.h"
+	#include "../include/print.h"
+	#include "../include/mover.h"
+	#include "../include/bitops.h"
+
+	#include "../include/positions.h"
+	#include "../include/commitmove.h"
+	#include "../include/jumper.h"
+	#include "../include/commitjump.h"
+}
+#include <string.h>
+#include <math.h>
+
+extern "C" int bestMJalt(PGAME orgGame, PGAME game, int d, int f, int returnScore);
+int salll=0;
+int countaa=0;
+int i;
+	int j;
+	int gamesToPlay = 10;
+	int test_matrix[8][8];
+	
+	GAME theGame;
+	GAME testGame;
+	GAME gameHistory[200];
+	
+	
+	
+	int theTime;
+	int move;
+	int moveCounter = 0;
+	int victoryCount = 0;
+	int staleMateCount = 40;
+	int whiteWins = 0;
+	int blackWins = 0;
+	int staleWins = 0;
+	int turns;
+	int h;
+	int timeToSearch = 1;
+	int newPosition;
+	int blackPlyNodeLimit = 10000;
+	int whitePlyNodeLimit = 10000;
+	int plyLimit = blackPlyNodeLimit;
+	
+	
+	char difficulty;
+	
+	char startNewGame = 0;
+	int  ch;	
+
+int origem = -1, destino = -1, remover = -1;	
+	
+	int totalBlackPieces = 12;
+	int totalWhitePieces = 12;
+	int totalKings = 0;
+
+using namespace	std;
+
+bool demo_service_callback(damas_hsv::Path_Posit::Request &req, damas_hsv::Path_Posit::Response &res)
+{
+
+    std::clock_t start;
+    double duration;
+
+    start = std::clock();
+
+// test_matrix = {
+//			0,2,0,2,0,2,0,2,
+//			2,0,2,0,2,0,2,0,
+//			0,0,0,0,0,2,0,2,
+//			2,0,2,0,0,0,0,0,
+//			0,0,0,1,0,0,0,0,
+//			1,0,1,0,0,0,1,0,
+//			0,1,0,1,0,1,0,1,
+//			1,0,1,0,1,0,1,0,
+//				};
+
+//====================================================================================================================================================
+//****************************************************************************************************************************************************
+// Conversão do tabuleiro recebido para fazer a simetria vertical. Porque o tabuleiro real é simétrico em relação ao do algoritmo
+//****************************************************************************************************************************************************
+//====================================================================================================================================================
+int contadorss=0;
+for(int i = 0; i<8; i++)
+{
+    for(int j = 0; j<8; j++)
+    {
+	switch(i)
+	   {
+	     case 0 :
+         test_matrix[i][j] = (req.linha0[contadorss]);
+         contadorss = contadorss + 1;
+         break;
+         
+ 	     case 1 :
+         test_matrix[i][j] = (req.linha1[contadorss]);
+          contadorss = contadorss + 1;
+         break;
+         
+ 	     case 2 :
+         test_matrix[i][j] = (req.linha2[contadorss]);
+          contadorss = contadorss + 1;
+         break;
+     
+ 	     case 3 :
+         test_matrix[i][j] = (req.linha3[contadorss]);
+          contadorss = contadorss + 1;
+         break;
+         
+ 	     case 4 :
+         test_matrix[i][j] = (req.linha4[contadorss]);
+          contadorss = contadorss + 1;
+         break;
+         
+ 	     case 5 :
+         test_matrix[i][j] = (req.linha5[contadorss]);
+          contadorss = contadorss + 1;
+         break;
+         
+ 	     case 6 :
+         test_matrix[i][j] = (req.linha6[contadorss]);
+          contadorss = contadorss + 1;
+         break;
+         
+         case 7 :
+         test_matrix[i][j] = (req.linha7[contadorss]);
+          contadorss = contadorss + 1;
+         break;
+         }
+    }
+    contadorss=0;
+}
+
+//   for(int x=0;x<8;x++)  // loop 3 times for three lines
+//    {
+//        for(int y=0;y<8;y++)  // loop for the three elements on the line
+//        {
+//            cout<<test_matrix[x][y];  // display the current element out of the array
+//        }
+//    cout<<endl;  // when the inner loop is done, go to a new line
+//    }
+    
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+
+	player = 'w';
+		
+		//Set pieces count
+		totalBlackPieces = 12;
+		totalWhitePieces = 12;
+		
+		//Set move counter
+		moveCounter = 0;	
+		
+		//Prepare a new game
+		theGame = newGame();
+		cleanUp(&theGame);
+
+		//Set stalemate count
+		staleMateCount = 40;
+		
+		//Find all jumps for the current player
+		findJumpersForGame(&theGame); //Está no jumper.c
+		
+		//If there were no jumps, then find movers instead.
+		if (!theGame.canJ) {
+			findMoversForGame(&theGame);  //Esta no mover.c
+		}
+
+		
+		
+		//If there are no moves, then change the turn again to the previous player.
+		if (!theGame.mjCount) {
+			changeTurn(&theGame);
+		}
+
+		turns = 0;
+		
+		while (/*theGame.white && theGame.black && (theGame.mjCount) && staleMateCount > 0*/turns < 1) {
+			
+			if (theGame.turn == 'w') {
+				plyLimit = whitePlyNodeLimit;
+			}else {
+				plyLimit = blackPlyNodeLimit;
+			}
+
+	
+	
+			gameHistory[turns] = theGame;
+			turns++;
+		
+			//Increment our move counter
+			moveCounter++;
+
+//			printf("theGame.turn = %d\n player = %d\n", theGame.turn, player);
+		
+			if (player != theGame.turn) {//computer play
+
+
+	
+				//Take the best or next best move
+				if (difficulty == 'e') {
+					move = 0;	
+				}else {
+					move = 2;
+				}
+
+		
+		
+	
+				//Find best jump, and preform it.		
+	
+				if (theGame.mjCount > 1) {
+					if(theGame.turn == 'w'){
+						move = bestMJalt(&theGame, &theGame, 6, 2, 0);
+//						printf("entrei no if 1\n");
+//						printf("move = %d\n", move);////teste
+					}
+					else{
+						move = bestMJalt(&theGame, &theGame, 6, 2, 0);	
+//						printf("entrei no else 1\n");
+////						printf("move = %d\n", move);////teste
+					}
+				}
+				else{
+//					printf("entrei no else2\n");
+					move = 0;
+//					printf("move = %d\n", move);////teste
+				}
+				
+
+
+				
+
+	
+	
+
+				testGame = theGame;
+
+				newPosition = 0;
+		
+		      	        //Excecute test move/jump
+			        if (testGame.canJ) {
+					makeJump(move, &testGame, 0);
+//					printf("entrei no makeJump");
+			   	 }else{
+					makeMove(move, &testGame,0);
+//					printf("entrei no makeMove");
+			    	}
+        
+			}else{					//Player play
+/*				move = askPlayerForMove(&theGame);    //ignorar a jogada do Player*/
+/*				move = 0;//teste				*/
+/*				getchar();//teste*/
+				
+			}
+		
+
+
+			if(player != theGame.turn){ //fui eu
+				//Excecute move/jump
+				if (theGame.canJ) {
+					makeJump(move, &theGame, 1);
+				}else {
+					makeMove(move, &theGame,1);
+//					printf("11111111111111111111111111111111111111111111111111111111111");
+				}
+			}
+
+	
+	
+			//Stalemate checker
+			if (totalBlackPieces == bitsInBitboard(theGame.black) && totalWhitePieces == bitsInBitboard(theGame.white) && totalKings == bitsInBitboard(theGame.kings)) {
+				staleMateCount--;
+			}
+			else {
+				totalBlackPieces = bitsInBitboard(theGame.black);
+				totalWhitePieces = bitsInBitboard(theGame.white);
+				totalKings = bitsInBitboard(theGame.kings);
+				staleMateCount = 40;
+			}
+		
+	
+	
+			//Change the turn and crown pieces.
+			changeTurn(&theGame);
+			cleanUp(&theGame);
+
+	
+	
+			//Print all moves, if we are at the last game
+			if(turns == 1){}			
+			else{
+				printGame(&theGame);
+			}                                            
+
+			//Find all jumps for the current player
+			findJumpersForGame(&theGame);
+		
+			//If there were no jumps, then find movers instead.
+			if (!theGame.canJ) {
+				findMoversForGame(&theGame);
+//				printf("moves found\n");
+			}else {
+//				printf("jumps found\n");
+			}
+		
+//			printGame(&theGame);
+	
+			//If there are no moves, then change the turn again to the previous player.
+			if (!theGame.mjCount) {
+				changeTurn(&theGame);
+//  				printf("no mj's found\n");
+			}
+		printGame(&theGame);
+	}////////////////////////////////////////////////////////////////////////////////
+	
+	
+	//Increment our move counter
+	moveCounter++;
+	
+	//If stalemate count is reached, no one wins	
+	if (staleMateCount <= 0) {
+		theGame.turn = 'n';
+		plyLimit = whitePlyNodeLimit;
+		whitePlyNodeLimit = blackPlyNodeLimit;
+		blackPlyNodeLimit = plyLimit;
+	}
+	
+	//If black is eliminated, White wins.
+	if (theGame.black == 0) {
+		whiteWins++;
+		victoryCount++;
+		blackPlyNodeLimit -= 10;
+		theGame.turn = 'W';
+
+	} 
+	//If white is eliminated, Black wins	
+	if (theGame.white == 0) {
+		blackWins++;
+		victoryCount--;
+		whitePlyNodeLimit -= 10;
+
+		theGame.turn = 'B';
+		
+	}
+	
+	
+
+	//If black has no more moves, white wins
+	if (theGame.turn == 'w' ){
+		whiteWins++;
+		victoryCount++;
+		blackPlyNodeLimit -= 10;
+
+	}
+
+	//If white has no more moves, black wins
+	if (theGame.turn == 'b' ){
+		blackWins++;
+		victoryCount--;
+		whitePlyNodeLimit -= 10;
+
+
+	}
+	
+	//No winner.
+	if (theGame.turn == 'n'){
+		staleWins++;
+		plyLimit = whitePlyNodeLimit;
+		whitePlyNodeLimit = blackPlyNodeLimit;
+		blackPlyNodeLimit = plyLimit;
+
+	}
+
+	
+	
+	
+	
+
+//	printf("%d, games, whiteWins is %d, blackWins is %d, staleWins is %d, games to search: %d\n",i+1, whiteWins, blackWins, staleWins);
+//	printf("\nCONTINUA.......................................................................\n");
+//	printf("\n\nwhitePly: %d, blackPly %d\n", whitePlyNodeLimit, blackPlyNodeLimit);
+	/*
+	
+	printf("New game 'y' or 'n'\?\n");
+	while ((ch = getchar()) != '\n' && ch != EOF);
+	scanf("%c", &startNewGame);
+	if (startNewGame == 'y') {
+		gamesToPlay++;
+	}
+	*/BITBOARD white = 0x041C71C3;
+
+//	}//END PRINCIPAL FOR
+	theTime = time(0) - theTime;
+	
+	
+//	printf("%d, games in %d seconds, whiteWins is %d, blackWins is %d, staleWins is: %d\n",i-1, theTime, whiteWins, blackWins, staleWins);
+
+//	printf("\nENCERREI!!!!!!!! NÂO PODE HAVER MAIS JOGOS!\n");
+
+
+
+	//array para coordenadas de matriz
+
+	origem = arrayToMatrix(origem);
+	destino = arrayToMatrix(destino);
+	if(remover >= 0){
+		remover = arrayToMatrix(remover);
+	}
+	//
+
+//	printf("origem %d , destino %d, remover %d\n", origem, destino, remover);
+	
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+
+//====================================================================================================================================================
+//****************************************************************************************************************************************************
+// Guardar as posições das quais o robô vai ter de mexer
+//****************************************************************************************************************************************************
+//====================================================================================================================================================
+	res.origem = origem;
+	res.destino = destino;
+	res.remover = remover;
+	salll=1;
+//	ROS_INFO("RECEBI[%li;%li], CONFIRMEI[%i;%i;%i]", req.linha0[3],req.linha0[6],res.origem,res.destino,res.remover);
+    
+    
+    
+//		ROS_INFO("POSICAO ATINGIDA!!!!");
+//		
+		countaa=countaa+1;
+//		std::cout<<"\nentrei aqui 2222222222222222 ##########################################################################"<<countaa;
+
+//		if (countaa == 4)
+//		exit(1);
+
+	return	true;
+} 
+
+
+
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+
+int arrayToMatrix(int array){
+	int coluna;
+	int linha;
+	linha = (int)(array/4.0);
+	if(linha % 2 == 0){
+		coluna = (array - linha*4) * 2 + 1;
+	}
+	else{
+		coluna = (array - linha*4) * 2;	
+	}
+
+	linha *= 10;
+	int soma = linha + coluna;
+	
+	return soma;
+}
+
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+
+//Setsup a new game.
+GAME newGame(){
+
+
+
+	int i;
+	int j;
+
+//	for(i = 0; i < 8; i++){
+//		for(j = 0; j < 8; j++){
+//			printf("%d", test_matrix[i][j]);
+//		}
+//		printf("\n");
+//	}
+
+	int test_array[32], d = 0;
+
+	for(i = 0; i < 8; i++){
+		for(j = 0; j < 8; j++){
+			if(i%2 == 0){
+				if(j%2 != 0){
+					test_array[d] = test_matrix[i][j];
+					d++;
+				}
+			}
+			else{
+				if(j%2 == 0){
+					test_array[d] = test_matrix[i][j];
+					d++;
+				}
+			}
+		}
+	}
+	
+
+	BITBOARD white = 0x00000000;
+	BITBOARD black = 0x00000000;
+	BITBOARD kings = 0x00000000;
+
+	for(i = 0; i< 32; i++){
+		switch(test_array[i]){
+			case 1 :
+				white += bitboardForRealPosition[i];
+				break;
+			case 2 :
+				black += bitboardForRealPosition[i];
+				break;
+			case 3 ... 4 :
+				kings += bitboardForRealPosition[i];
+				break;
+		}
+	}
+//	printBitboard(white);
+//	printBitboard(black);
+	printBitboard(kings);
+
+
+	char turn = 'b';
+	printf("Passei no GAME newGame\n");
+	return game(black, white, kings, turn);
+}
+
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+
+GAME game(BITBOARD black, BITBOARD white, BITBOARD kings, char turn){
+	
+	GAME game;
+	
+	if (turn != 'w' && turn !='b')
+		turn = 'b';
+	
+	printf("Passei no GAME game\n");
+	game.black=black;
+	game.white=white;
+	game.kings=kings;
+	game.notOccupied =~(game.white|game.black);
+	game.turn=turn;
+	game.mjCount=0;
+	game.canJ = 0;
+	game.score = 0;
+	game.parrentGame = 0;
+	game.blackPieces.piecesCount = 12;
+	game.whitePieces.piecesCount = 12;
+	piecesInGameForActivePlayer(&game);
+
+	
+	return game;
+}
+
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+
+void changeTurn(PGAME game){
+	
+
+	if ((*game).turn == 'w')
+		(*game).turn = 'b';
+	else
+		(*game).turn = 'w';
+	
+	
+	if ((*game).black & ~(LEGAL_SOUTH_MOVE)){
+		(*game).kings = (*game).kings | ((*game).black & ~(LEGAL_SOUTH_MOVE));
+	}
+	if ((*game).white & ~(LEGAL_NORTH_MOVE)){
+		(*game).kings = (*game).kings | ((*game).white & ~(LEGAL_NORTH_MOVE));
+	}
+	return;
+}
+
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+
+void cleanUp (PGAME game){
+
+	(*game).notOccupied =~((*game).white|(*game).black);
+	(*game).mjCount = 0;
+	(*game).canJ = 0;
+
+	return;
+}
+
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+
+int isPieceFriendly (GAME game, BITBOARD position){
+
+	if (game.turn == 'w'){
+		if (pieceAtPosition(&game, position) == 'w' || pieceAtPosition(&game, position) == 'W')
+			return 1;
+	}
+	
+	if (game.turn == 'b'){
+		if (pieceAtPosition(&game, position) == 'b' || pieceAtPosition(&game, position) == 'B')
+			return 1;
+		}
+	return 0;
+}
+
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+
+void addMoveToEndGameDatabase (PGAMESESSION db, PGAME theGame, int gameNumber){
+	
+	//Expand Array if full.
+	if (db[gameNumber].movesAllocated == db[gameNumber].moveCount){
+	
+		if (db[gameNumber].movesAllocated == 0){
+			db[gameNumber].movesAllocated == 10;
+		}else {
+			db[gameNumber].movesAllocated += 10;
+		}
+	
+	PLIGHTGAME tmp;
+	tmp = (PLIGHTGAME) realloc(db[gameNumber].moves, sizeof(LIGHTGAME) * db[gameNumber].movesAllocated);
+
+	if (!tmp) {
+		printf("error! panic!\n");
+	}
+	else {
+		db[gameNumber].moves = tmp;
+	}
+	}
+	
+	
+	//Add current game-state to egDB
+	db[gameNumber].moves[db[gameNumber].moveCount].black = (*theGame).black;
+	db[gameNumber].moves[db[gameNumber].moveCount].white = (*theGame).white;
+	db[gameNumber].moves[db[gameNumber].moveCount].kings = (*theGame).kings;	
+	db[gameNumber].moves[db[gameNumber].moveCount].turn = (*theGame).turn;	
+	
+}
+
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+
+int askPlayerForMove(PGAME playerGame){
+	
+	GAME theGame = (*playerGame);
+	int move = 0;
+	
+	printGame(&theGame);
+	int from;
+	int to;
+	int noPiece;
+	int ch;
+	
+	
+	BITBOARD canMove;
+	int canMoveLoopInt;
+	
+	
+	canMove = 0;
+	for(canMoveLoopInt = 0; canMoveLoopInt < theGame.mjCount; canMoveLoopInt++){
+		canMove = canMove|theGame.mjs[canMoveLoopInt].intermediates[0];
+	}
+	
+	noPiece = 0;
+	
+	while (!noPiece) {
+		printf("select piece to move (0-31)\n");
+		while ((ch = getchar()) != '\n' && ch != EOF);
+		scanf("%d", &from);
+		
+		if (canMove & bitboardForRealPosition[from]){
+			noPiece = 1;
+		}else {
+			printf("piece %d can not move.", from);
+			if (theGame.canJ) {
+				printf(" (you are forced to jump)");
+			}
+			printf("\n");
+		}
+		
+		
+	}
+	
+	canMove = 0;
+	
+	for(canMoveLoopInt = 0; canMoveLoopInt < theGame.mjCount; canMoveLoopInt++){
+		if (theGame.mjs[canMoveLoopInt].intermediates[0] & bitboardForRealPosition[from]) {
+			if (theGame.mjs[canMoveLoopInt].intermediatePosistions) {
+				printf("intermediate positions %d\n", theGame.mjs[canMoveLoopInt].intermediatePosistions);
+				canMove = canMove|theGame.mjs[canMoveLoopInt].intermediates[theGame.mjs[canMoveLoopInt].intermediatePosistions];
+			}else{
+				canMove = canMove|theGame.mjs[canMoveLoopInt].intermediates[1];
+			}
+			
+		}
+	}
+	
+	printf("you can move to the following positions\n");
+//	printBitboard(canMove);
+	
+	noPiece = 0;
+	while (!noPiece) {
+		printf("select where to move to\n");
+		while ((ch = getchar()) != '\n' && ch != EOF);
+		scanf("%d", &to);
+		
+		if (canMove & bitboardForRealPosition[to]){
+			noPiece = 1;
+		}
+		if (!noPiece) {
+			printf("Piece at position %d cannot move to position %d\n", from, to);
+		}
+	}
+	
+	
+	for (canMoveLoopInt = 0; canMoveLoopInt < theGame.mjCount; canMoveLoopInt++) {
+		if (theGame.mjs[canMoveLoopInt].intermediates[0] & bitboardForRealPosition[from]) {
+			if (theGame.mjs[canMoveLoopInt].intermediatePosistions) {
+				if (bitboardForRealPosition[to]& theGame.mjs[canMoveLoopInt].intermediates[theGame.mjs[canMoveLoopInt].intermediatePosistions]) {
+					move = canMoveLoopInt;
+				}
+			}else{
+				if (bitboardForRealPosition[to]& theGame.mjs[canMoveLoopInt].intermediates[1]) {
+					move = canMoveLoopInt;
+				}
+			}
+		}
+	}
+	return move;
+}
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+//=================================================================================================================================================================
+
+int main(int argc, char **argv)
+{
+
+
+    
+	ros::init(argc,	argv,	"algoritmo_jogo");
+	ros::NodeHandle	n;
+	
+	 // start a background "spinner", so our node can process ROS messages
+    //  - this lets us know when the move is completed
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+	
+	ros::ServiceServer service = n.advertiseService("tabuleiro1",demo_service_callback);
+	ROS_INFO("Ready	to receive from	client.");
+	
+	ros::spin();
+	
+
+	return	0;
+}//END MAIN
