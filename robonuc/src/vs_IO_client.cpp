@@ -46,7 +46,7 @@ public:
 
     		char buffer[256];
 
-//		Shift no código para todas as funções e i/o corresponderem a um char possível de codificar através da tabela ascii
+//		Shift the code so that all functions and the number of the I/O corresponde to a possible to encode char through the ascii table
 		int code_io = msg.code + 21;
 		ROS_INFO("INO Code %d",code_io-21);
 

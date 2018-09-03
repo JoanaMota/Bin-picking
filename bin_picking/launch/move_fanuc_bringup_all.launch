@@ -1,14 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-    <!-- <arg name="robot_ip" default="192.168.0.231" /> -->
-    <!-- <arg name="ip_str" value="192.168.0.231" /> -->
-
-    <!-- motion_streaming_interface : command robot motion by sending motion points to robot -->
-    <!-- <include file="$(find fanuc_moveit_config)/launch/moveit_planning_execution.launch">
-      <arg name="sim" value="false" />
-      <arg name="robot_ip" value="$(arg robot_ip)" />
-    </include> -->
-
     <arg name="ip_str" value="192.168.0.231" />
 
     <group>
@@ -21,31 +12,6 @@
     <!-- Kinect Drivers -->
     <include file="$(find bin_picking)/launch/kinect.launch" />
     
-    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find bin_picking)/config/robot_state_visualize.rviz" required="true" /> -->
-    
-    <!-- <include file="$(find bin_picking)/launch/robot_interface_streaming_bin_picking.launch" >
-      <arg name="robot_ip" value="$(arg robot_ip)"/>
-    </include> -->
-
-
-    <!-- <include file="$(find fanuc_moveit_config)/launch/move_group.launch">
-      <arg name="publish_monitored_planning_scene" value="true" />
-    </include> -->
-
-    <!-- <include file="$(find fanuc_moveit_config)/launch/moveit_rviz.launch">
-      <arg name="config" value="true"/>
-    </include> -->
-
-    <!-- <include file="$(find teleopvr_moveit_config)/launch/default_warehouse_db.launch" /> -->
-
-    <!-- <include file="$(find fanuc_moveit_config)/launch/moveit_planning_execution.launch" /> -->
-
-    <!-- <include file="$(find bin_picking)/launch/kinect.launch" /> -->
-
-
-    <!-- <include file="$(find bin_picking)/launch/load_bin_picking.launch" /> -->
-
-    <!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" /> -->
-
+    <node name="vs_IO_client" pkg="robonuc" type="vs_IO_client" />
 
 </launch>

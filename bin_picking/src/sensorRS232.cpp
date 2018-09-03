@@ -2,7 +2,7 @@
 
 using namespace std;
 
-char distance_laser[100];
+char distance_laser[10];
 float counter = 0.0;
 
 /**
@@ -20,7 +20,7 @@ int ReadPortUntilChar(int fd)
     do
     {
         n=read( fd, &ch, 1);
-        if( n == -1 ) continue;   //perror("Err:");
+        if( n == -1 || n == 0 ) continue;   //perror("Err:");
         sprintf(distance_laser,"%s%c",distance_laser,ch);
     } while( ch != '\n');       //Reads until a paragraph is found
     return 0;
@@ -33,11 +33,14 @@ int main (int argc, char** argv)
 
     ros::NodeHandle nh;
     ros::Publisher pub_rs232 = nh.advertise<std_msgs::Float32>("/output_laser_sensor", 1000);
-    ros::Rate loop_rate(10);
+    // ros::Rate loop_rate(15);
 
     int  fd;
     vector <float> readings;
+
     fd=OpenPort("/dev/ttyACM0", NULL);
+    
+    
     while (ros::ok() & fd == -1) 
     {
         cout << "Error. Could not open port" << endl ; 
@@ -45,8 +48,9 @@ int main (int argc, char** argv)
     }
 
 
-    while (ros::ok() && counter < 100)
+    while (ros::ok() && counter < 11)
     {
+        // cout << "aqui" << endl;
         std_msgs::Float32 dist; 
         ReadPortUntilChar(fd);                  //Reads the distance given by the Arduino UNO
         dist.data = atof(distance_laser);
@@ -54,12 +58,13 @@ int main (int argc, char** argv)
         {
             cout << "Distance=" << dist.data << endl; 
             
-            readings.push_back(dist.data);
+            if (counter>0) {
+             readings.push_back(dist.data);
+             }
             counter++;
-            
         }
         distance_laser[0] = '\0';
-        loop_rate.sleep();
+        // loop_rate.sleep();
     }
     
     float average = accumulate(readings.begin(), readings.end(), 0.0)/readings.size();          
@@ -68,8 +73,12 @@ int main (int argc, char** argv)
     cout << "The average is: " << average << endl; 
     std_msgs::Float32 dist_average; 
     dist_average.data = average;
-    pub_rs232.publish(dist_average);
-
     close(fd);
+    while (ros::ok())
+    {
+        pub_rs232.publish(dist_average);
+        // cout << "Output Laser just published" << endl;
+    }
+
     return 0;
 }

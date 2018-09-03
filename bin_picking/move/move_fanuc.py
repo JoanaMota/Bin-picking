@@ -86,7 +86,8 @@ def callback_targets_pose(targets_pose):
     yaw.data = targets_pose.euler_angles.x
 
 def callback_laser_sensor(output_laser_reading):
-    laser_reading.data = output_laser_reading
+    
+    laser_reading.data = output_laser_reading.data
 
 rospy.Subscriber("/targets_pose", TargetsPose, callback_targets_pose)
 rospy.Subscriber("/output_laser_sensor", Float32, callback_laser_sensor)
@@ -96,7 +97,7 @@ group.set_planner_id("RRTConnectkConfigDefault")
 
 visualization_point = Vector3()
 visualization_point.x = 0.440
-visualization_point.y = 0.0
+visualization_point.y = 0.000
 visualization_point.z = 0.440 
 
 # Quaternions of the Euler angles
@@ -116,7 +117,7 @@ launch_objDetect_pointTF = roslaunch.parent.ROSLaunchParent(uuid, ["/home/joana/
 # Start Launch node objDetection and pointTFtransfer
 launch_objDetect_pointTF.start()
 
-rospy.sleep(15.)
+rospy.wait_for_message("/targets_pose", TargetsPose)
 
 #Stop Launch node objDetection and pointTFtransfer
 launch_objDetect_pointTF.shutdown()
@@ -131,6 +132,8 @@ plan2, fraction2 = generate_plan(group, eef_position_laser, 5, quaternion)
 
 # MOVING
 move_robot(plan2, fraction2, group)
+if raw_input("If you want to EXIT press 'e': ") == 'e' :
+    exit()
 
 uuid3 = roslaunch.rlutil.get_or_generate_uuid(None, False)
 roslaunch.configure_logging(uuid3)
@@ -138,28 +141,20 @@ launch_sensorRS232 = roslaunch.parent.ROSLaunchParent(uuid3, ["/home/joana/catki
 # Start Launch node sensorRS232
 launch_sensorRS232.start()
 
-rospy.sleep(11.)
+rospy.wait_for_message("/output_laser_sensor", Float32)
 # Stop Launch node sensorRS232
 launch_sensorRS232.shutdown()
 
-laser_reading_float = laser_reading.data
+print laser_reading.data
+laser_reading_float = laser_reading.data + 1.000
+# for vertical eggs
+# laser_reading_float = laser_reading.data + 1.800
 
 grasping_point = Vector3()
 # + or -
-grasping_point.x = approx_point.x + laser_reading_float.data * 0.001 * normal.x
-grasping_point.y = approx_point.y + laser_reading_float.data * 0.001 * normal.y
-grasping_point.z = approx_point.z + laser_reading_float.data * 0.001 * normal.z
-
-print grasping_point
-
-# Creating and publishing a PointStamped of the grasping point for visualization
-grasping_point_ps = PointStamped()
-grasping_point_ps.header.frame_id = "/robot_base_link"
-grasping_point_ps.point.x = grasping_point.x
-grasping_point_ps.point.y = grasping_point.y
-grasping_point_ps.point.z = grasping_point.z
-
-grasping_point_pub.publish(grasping_point_ps)
+grasping_point.x = approx_point.x + laser_reading_float * 0.001 * normal.x
+grasping_point.y = approx_point.y + laser_reading_float * 0.001 * normal.y
+grasping_point.z = approx_point.z + laser_reading_float * 0.001 * normal.z
 
 # 3rd POSITION - Approximation point
 # GENERATING PLAN
@@ -174,7 +169,7 @@ plan4, fraction4 = generate_plan(group, grasping_point, 5, quaternion)
 
 # MOVING
 move_robot(plan4, fraction4, group)
-
+    
 # IO number 8 activates the suction
 # First activate IO number for for IO number 8 to work
 monitoring_ios(2,4)
@@ -186,6 +181,23 @@ plan5, fraction5 = generate_plan(group, approx_point, 5, quaternion)
 
 # MOVING
 move_robot(plan5, fraction5, group)
+
+final_point = Vector3()
+final_point.x = 0.440
+final_point.y = -0.270
+final_point.z = 0.200 
+
+# Quaternions of the Euler angles
+quaternion_final = quaternion_from_euler(-np.pi, 0, roll)
+
+# 1st POSITION - Visualize Workspace
+# GENERATING PLAN
+plan6, fraction6 = generate_plan(group, final_point, 5, quaternion_final)
+
+# MOVEMENT
+move_robot(plan6, fraction6, group)
+
+
 monitoring_ios(3,8)
 monitoring_ios(3,4)
 exit()

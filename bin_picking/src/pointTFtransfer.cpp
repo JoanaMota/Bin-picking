@@ -6,7 +6,7 @@ using namespace std;
 
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 typedef pcl::PointCloud<pcl::Normal> PointCloudNormal;
-float X, Y, Z, normal_X, normal_Y, normal_Z;
+float X = 0, Y, Z, normal_X = 0, normal_Y, normal_Z;
 
 void cloud_centroid (const PointCloud::ConstPtr& cloud_centroid)
 {
@@ -32,8 +32,13 @@ int main (int argc, char* argv[])
     ros::Subscriber sub_centroid = node.subscribe<PointCloud> ("/cloud_centroid", 1, cloud_centroid);
     // Subscribe normal published by the objDetection.cpp
     ros::Subscriber sub_normal = node.subscribe<PointCloudNormal> ("/cloud_centroid_normal", 1, cloud_centroid_normal);
+    ros::Rate rate(10.0);
     ros::spinOnce();
-
+    // int counter = 0;
+    while ( X==0 || normal_X==0 )
+    {
+        ros::spinOnce();
+    }
     //-------PUBLISH:
     // MSG with normal, approximation point, end-effector position for laser reading and euler angles
     ros::Publisher targets_pose_pub = node.advertise<bin_picking::TargetsPose>("/targets_pose", 1);
@@ -42,7 +47,7 @@ int main (int argc, char* argv[])
     ros::Publisher centroid_pointStamped = node.advertise<geometry_msgs::PointStamped>("/centroidPS_in_robot_base", 1);
     // Approximation point for visualization
     ros::Publisher approx_point_pointStamped = node.advertise<geometry_msgs::PointStamped>("/approximation_point", 1);
-    // End- effector position for laser reading for visualization
+    // End-effector position for laser reading for visualization
     ros::Publisher eef_position_laser_reading_pointStamped = node.advertise<geometry_msgs::PointStamped>("/eef_position_laser_reading_point", 1);
     
     tf2_ros::Buffer tfBuffer; 
@@ -51,29 +56,40 @@ int main (int argc, char* argv[])
     // TF broadcaster to broadcast the TF for the approximation point and for the end-effector position for laser reading
     tf2_ros::TransformBroadcaster br;
 
-    ros::Rate rate(10.0);
+    float Xf, Yf, Zf, normal_Xf, normal_Yf, normal_Zf;
+    Xf = X;
+    Yf = Y;
+    Zf = Z;
+
+    normal_Xf = normal_X;
+    normal_Yf = normal_Y;
+    normal_Zf = normal_Z;
+
     while (node.ok())
     {
         ros::spinOnce();
         tf::StampedTransform transform;
         geometry_msgs::PointStamped centroid_initial_pt;
-        centroid_initial_pt.point.x = X;
-        centroid_initial_pt.point.y = Y;
-        centroid_initial_pt.point.z = Z;
+        centroid_initial_pt.point.x = Xf;
+        centroid_initial_pt.point.y = Yf;
+        centroid_initial_pt.point.z = Zf;
         centroid_initial_pt.header.frame_id = "/camera_rgb_optical_frame";
 
         geometry_msgs::PointStamped normal_initial_pt;
-        normal_initial_pt.point.x = normal_X;
-        normal_initial_pt.point.y = normal_Y;
-        normal_initial_pt.point.z = normal_Z;
+        normal_initial_pt.point.x = normal_Xf;
+        normal_initial_pt.point.y = normal_Yf;
+        normal_initial_pt.point.z = normal_Zf;
         normal_initial_pt.header.frame_id = "/camera_rgb_optical_frame";
 
         // APPROXIMATION POINT IN RELATION TO KINECT
         // Calculate approximation point with normal and centroid in relation the TF /camera_rgb_optical_frame 
         geometry_msgs::PointStamped approx_point_initial_pt;
-        approx_point_initial_pt.point.x = centroid_initial_pt.point.x + 0.25 * normal_initial_pt.point.x;
-        approx_point_initial_pt.point.y = centroid_initial_pt.point.y + 0.25 * normal_initial_pt.point.y;
-        approx_point_initial_pt.point.z = centroid_initial_pt.point.z + 0.25 * normal_initial_pt.point.z;
+        approx_point_initial_pt.point.x = centroid_initial_pt.point.x + 0.30 * normal_initial_pt.point.x;
+        approx_point_initial_pt.point.y = centroid_initial_pt.point.y + 0.30 * normal_initial_pt.point.y;
+        approx_point_initial_pt.point.z = centroid_initial_pt.point.z + 0.30 * normal_initial_pt.point.z;
+        // approx_point_initial_pt.point.x = centroid_initial_pt.point.x + 0.25 * normal_initial_pt.point.x;
+        // approx_point_initial_pt.point.y = centroid_initial_pt.point.y + 0.25 * normal_initial_pt.point.y;
+        // approx_point_initial_pt.point.z = centroid_initial_pt.point.z + 0.25 * normal_initial_pt.point.z;
 
         // Initialize transformation matrixes
         geometry_msgs::TransformStamped transformStamped;
@@ -138,8 +154,8 @@ int main (int argc, char* argv[])
             pitch = pitch6;
             yaw = yaw6;
 
-            cout << "yaw: " << yaw << endl;    
-            cout << "pitch: " << -pitch << endl;  
+            // cout << "yaw: " << yaw << endl;    
+            // cout << "pitch: " << -pitch << endl;  
 
             geometry_msgs::Pose2D  euler_angles;
             euler_angles.x = yaw;

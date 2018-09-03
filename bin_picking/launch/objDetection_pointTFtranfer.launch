@@ -2,6 +2,6 @@
 <launch>
 
     <node name="objDetection" pkg="bin_picking" type="objDetection" />
-    <node name="pointTFtransfer" pkg="bin_picking" type="pointTFtransfer" />
+    <node name="pointTFtransfer" pkg="bin_picking" type="pointTFtransfer" output="screen" />
     
 </launch>
