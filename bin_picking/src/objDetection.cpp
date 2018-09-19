@@ -202,7 +202,6 @@ int main (int argc, char** argv)
     
     // if(keyInput == 's' || keyInput == 'S')
 
-    // MUDAR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // if(counter == 10)
     // {
     //   break;

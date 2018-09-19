@@ -104,6 +104,7 @@ visualization_point.z = 0.440
 # Quaternions of the Euler angles
 quaternion_init = quaternion_from_euler(-np.pi, 0, roll)
 
+
 # 1st POSITION - Visualize Workspace
 # GENERATING PLAN
 plan1, fraction1 = generate_plan(group, visualization_point, 5, quaternion_init)
@@ -176,7 +177,6 @@ move_robot(plan4, fraction4, group)
 # First activate IO number for for IO number 8 to work
 monitoring_ios(2,4)
 monitoring_ios(2,8)
-
 
 # 5th POSITION -Return to Approximation point 
 # GENERATING PLAN 5

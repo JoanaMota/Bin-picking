@@ -1,11 +1,17 @@
 <?xml version="1.0"?>
 <launch>
+  <!-- Kinect Drivers -->
   <include file="$(find bin_picking)/launch/kinect.launch" />
+  
+  <!-- Load the virtual model (URDF) of Robot + Vision System -->
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find bin_picking)/urdf/binpicking.xacro'" />
   <param name="use_gui" value="true"/>
+
+  <!-- robot_state : publishes current joint positions and robot state data -->
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
-  <node name="rviz" pkg="rviz" type="rviz" required="true" />
-  <!-- <node name="bin_picking" pkg="bin_picking" type="pointTFtransfer" />   -->
+
+  <!-- start RViz configuration-->
+  <node name="robot_rviz" pkg="rviz" type="rviz" required="true"  args="-d $(find bin_picking)/config/robot_rviz.rviz" />
   
 </launch>

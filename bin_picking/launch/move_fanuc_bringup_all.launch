@@ -2,6 +2,7 @@
 <launch>
     <arg name="ip_str" value="192.168.0.231" />
 
+    <!-- Planing and execution -->
     <group>
       <include file="$(find fanuc_moveit_config)/launch/moveit_planning_execution.launch">
         <arg name="sim" value="false" />
@@ -12,6 +13,7 @@
     <!-- Kinect Drivers -->
     <include file="$(find bin_picking)/launch/kinect.launch" />
     
+    <!-- Node to control I/Os -->
     <node name="vs_IO_client" pkg="robonuc" type="vs_IO_client" />
 
 </launch>

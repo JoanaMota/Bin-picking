@@ -13,7 +13,7 @@ Panels:
         - /RobotState1
         - /Axes1
       Splitter Ratio: 0.742560029
-    Tree Height: 581
+    Tree Height: 437
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -507,7 +507,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 1.26326537
+      Distance: 1.25947058
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -522,10 +522,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.414797485
+      Pitch: 0.434797436
       Target Frame: robot_base_link
       Value: XYOrbit (rviz)
-      Yaw: 4.82492113
+      Yaw: 0.896736503
     Saved: ~
 Window Geometry:
   Displays:

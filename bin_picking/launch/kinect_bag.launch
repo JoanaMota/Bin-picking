@@ -1,17 +1,19 @@
 <?xml version="1.0"?>
 <launch>
+    <!-- Kinect Point Cloud Bag path -->
     <arg name="path" default="/home/joana/catkin_ws/src/Bin-picking/bin_picking/bagfiles/" />
     <arg name="bag" default="pieces_segmentation2" />
-    <!-- <node pkg="rosbag" type="play" name="player" output="screen" args="/home/joana/catkin_ws/src/Bin-picking/bagfiles/kinectj6.bag -l"/> -->
+    <!-- Play Point Cloud Bag -->
     <node pkg="rosbag" type="play" name="player" output="screen" args="$(arg path)$(arg bag).bag -l" />
-    <!-- start rviz -->
-    <!-- <node pkg="rviz" type="rviz" name="my_rviz"/>  -->
+   
+    <!-- start RViz configuration-->
+    <node pkg="rviz" type="rviz" name="kinect_bag_rviz" args="-d $(find bin_picking)/config/kinect_bag_rviz.rviz"/> 
     
+    <!-- Kinect Drivers -->
     <include file="$(find openni_launch)/launch/openni.launch">
         <arg name="load_driver" value="false" />
-
     </include>
 
-    <!-- <node name="bin_picking_objDetection" pkg="bin_picking" type="objDetection" /> -->
-    <!-- <node name="bin_picking_pointTFtransfer" pkg="bin_picking" type="pointTFtransfer" />   -->
+    <!-- Run objDetection node -- centroid and normal determination -->
+    <node name="bin_picking_objDetection" pkg="bin_picking" type="objDetection" />
 </launch>
