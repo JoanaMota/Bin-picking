@@ -131,7 +131,7 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-add_executable(vs_fanuc_client src/vs_fanuc_client.cpp)
+# add_executable(vs_fanuc_client src/vs_fanuc_client.cpp)
 add_executable(vs_keyboard src/vs_keyboard.cpp)
 add_executable(vs_platform_sim src/vs_platform_sim.cpp)
 add_executable(vs_IO_client src/vs_IO_client.cpp)
@@ -171,7 +171,7 @@ add_executable(vs_laser_receptor src/vs_laser_receptor.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(vs_keyboard ${catkin_LIBRARIES})
 target_link_libraries(vs_platform_sim ${catkin_LIBRARIES})
-target_link_libraries(vs_fanuc_client ${catkin_LIBRARIES})
+# target_link_libraries(vs_fanuc_client ${catkin_LIBRARIES})
 target_link_libraries(vs_IO_client ${catkin_LIBRARIES})
 target_link_libraries(vs_frame ${catkin_LIBRARIES})
 target_link_libraries(vs_laser_receptor ${catkin_LIBRARIES})
@@ -184,8 +184,8 @@ target_link_libraries(vs_laser_receptor ${catkin_LIBRARIES})
 add_dependencies(vs_keyboard ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(vs_platform_sim ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(vs_platform_sim ${PROJECT_NAME}_gencpp)
-add_dependencies(vs_fanuc_client ${PROJECT_NAME}_generate_messages_cpp)
-add_dependencies(vs_fanuc_client ${PROJECT_NAME}_gencpp)
+# add_dependencies(vs_fanuc_client ${PROJECT_NAME}_generate_messages_cpp)
+# add_dependencies(vs_fanuc_client ${PROJECT_NAME}_gencpp)
 add_dependencies(vs_laser_receptor ${PROJECT_NAME}_gencpp)
 add_dependencies(vs_platform_sim ${catkin_EXPORTED_TARGETS})
 
@@ -266,11 +266,11 @@ add_dependencies(vs_platform_sim ${catkin_EXPORTED_TARGETS})
 #        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/
 #)
 # Mark executables and/or libraries for installation
-install(TARGETS vs_fanuc_client
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+# install(TARGETS vs_fanuc_client
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
 
 # Mark cpp header files for installation
  install(DIRECTORY include/${PROJECT_NAME}/

@@ -13,7 +13,6 @@
     <include file="$(find openni_launch)/launch/openni.launch">
         <arg name="load_driver" value="false" />
     </include>
-
-    <!-- Run objDetection node -- centroid and normal determination -->
+    <!-- Run objDetection node for centroid and normal determination -->
     <node name="bin_picking_objDetection" pkg="bin_picking" type="objDetection" />
 </launch>
