@@ -1,7 +1,7 @@
 # Bin-picking
 My Master Thesis 
 
-Bin-picking with precision using a 3D Sensor and a 1D Laser Sensor
+[Precision Bin-Picking using a 3D Sensor and a 1D Laser Sensor](http://lars.mec.ua.pt/public/LAR%20Projects/BinPicking/2018_JoanaMota/PDF/master_thesisJoana.pdf)
 
 Bin-picking is the name of the technique used by a robot to grasp objects that are randomly disposed inside a box or a pallet.
 
