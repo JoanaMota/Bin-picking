@@ -10,7 +10,7 @@ My purpose with this thesis was to develop a solution for a different process of
 generate a point cloud of the objects, and a 1D laser sensor to correctly determinate the exact distance to
 the grasping point.
 
-You can find more information about the full process to develop this project in [My Master's Thesis Blog](https://joanamota.github.io)
+More information on the full process taken to develop this project in [My Master's Thesis Blog](https://joanamota.github.io)
 
 ![](images/eggsFast.gif)
 
